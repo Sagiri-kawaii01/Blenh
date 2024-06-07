@@ -11,8 +11,11 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.hilt.navigation.compose.hiltViewModel
+import com.github.sagiri_kawaii01.blenh.base.mvi.TestViewModel
 import com.github.sagiri_kawaii01.blenh.ui.theme.BlenhTheme
 import dagger.hilt.android.AndroidEntryPoint
+import dagger.hilt.android.lifecycle.HiltViewModel
 
 @AndroidEntryPoint
 class MainActivity : ComponentActivity() {
@@ -33,9 +36,14 @@ class MainActivity : ComponentActivity() {
 }
 
 @Composable
-fun Greeting(name: String, modifier: Modifier = Modifier) {
+fun Greeting(name: String,
+             modifier: Modifier = Modifier,
+             viewModel: TestViewModel = hiltViewModel()) {
+    viewModel.getIcons()
+    val value = viewModel.icons.value
+
     Text(
-        text = "Hello $name!",
+        text = "Hello ${value.size}!",
         modifier = modifier
     )
 }
