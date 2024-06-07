@@ -71,7 +71,6 @@ abstract class AppDatabase: RoomDatabase() {
                 billDao.insert(it)
             }
 
-
         }
     }
 
