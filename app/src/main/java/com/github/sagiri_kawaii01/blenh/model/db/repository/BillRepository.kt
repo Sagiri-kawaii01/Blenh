@@ -12,7 +12,6 @@ import kotlinx.coroutines.flow.flowOn
 import javax.inject.Inject
 import javax.inject.Singleton
 
-@Singleton
 class BillRepository @Inject constructor(
     private val billDao: BillDao
 ) {

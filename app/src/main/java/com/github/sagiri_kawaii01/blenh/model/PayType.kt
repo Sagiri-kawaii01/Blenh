@@ -6,4 +6,17 @@ enum class PayType(
     Wechat(1),
     AliPay(2),
     Rmb(3)
+
+    ;
+
+    companion object {
+        fun fromId(id: Int): PayType {
+            return when (id) {
+                1 -> Wechat
+                2 -> AliPay
+                3 -> Rmb
+                else -> throw IllegalArgumentException("Unknown id: $id")
+            }
+        }
+    }
 }

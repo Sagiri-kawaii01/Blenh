@@ -1,5 +1,6 @@
 package com.github.sagiri_kawaii01.blenh.ui.screen.dashboard
 
+import android.util.Log
 import androidx.lifecycle.viewModelScope
 import com.github.sagiri_kawaii01.blenh.base.mvi.AbstractMviViewModel
 import com.github.sagiri_kawaii01.blenh.base.mvi.MviSingleEvent
@@ -37,9 +38,12 @@ class DashboardViewModel @Inject constructor(
             intentSharedFlow.filterIsInstance<DashboardIntent.GetBillList>().take(1),
             intentSharedFlow.filterNot { it is DashboardIntent.GetBillList }
         )
+            .debugLog("Dashboard")
             .shareWhileSubscribed()
             .toPartialStateChangeFlow()
-            .scan(initialVs) { vs, change -> change.reduce(vs) }
+            .scan(initialVs) { vs, change ->
+                change.reduce(vs)
+            }
             .stateIn(
                 viewModelScope,
                 SharingStarted.Eagerly,
@@ -53,12 +57,14 @@ class DashboardViewModel @Inject constructor(
             filterIsInstance<DashboardIntent.GetBillList>()
         ).flatMapLatest<DashboardIntent.GetBillList, DashboardStateChange> {
             billRepository.list(it.type).transform { bills ->
-                DashboardStateChange.BillList.Success(
-                    it.type,
-                    0.0,
-                    0.0,
-                    bills,
-                    emptyList()
+                emit(
+                    DashboardStateChange.BillList.Success(
+                        it.type,
+                        0.0,
+                        0.0,
+                        bills,
+                        emptyList()
+                    )
                 )
             }
         }.startWith(DashboardStateChange.BillList.Loading)
