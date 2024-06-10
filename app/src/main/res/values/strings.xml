@@ -1,3 +1,4 @@
 <resources>
     <string name="app_name">Blenh</string>
+    <string name="accessibility_service_name">Blenh</string>
 </resources>
