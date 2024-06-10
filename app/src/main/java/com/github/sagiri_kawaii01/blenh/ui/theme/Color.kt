@@ -12,5 +12,6 @@ val Pink40 = Color(0xFF7D5260)
 
 val Gray0 = Color(0xFFE6E6E6)
 val Gray20 = Color(0xFF828282)
+val Gray60 = Color(0xFFF6F6F6)
 
 val Blue20 = Color(0xFF2D6EFF)

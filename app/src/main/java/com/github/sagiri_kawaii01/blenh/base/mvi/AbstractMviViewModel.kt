@@ -72,7 +72,9 @@ abstract class AbstractMviViewModel<I: MviIntent, S: MviViewState, E: MviSingleE
         debugCheckMainThread()
         debugCheckImmediateMainDispatcher()
         Log.i(logTag, "processIntent: $intent")
-        check(intentMutableFlow.tryEmit(intent)) { "Failed to emit intent: $intent" }
+        check(intentMutableFlow.tryEmit(intent)) {
+            "Failed to emit intent: $intent"
+        }
     }
 
     @CallSuper

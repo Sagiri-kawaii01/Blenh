@@ -1,8 +1,10 @@
 package com.github.sagiri_kawaii01.blenh.ui.screen.dashboard
 
+import android.util.Log
 import com.github.sagiri_kawaii01.blenh.model.TimePeriodType
 import com.github.sagiri_kawaii01.blenh.model.bean.BillBean
 import com.github.sagiri_kawaii01.blenh.model.bean.IconBean
+import com.github.sagiri_kawaii01.blenh.model.vo.BillChart
 
 internal sealed interface DashboardStateChange {
     fun reduce(oldState: DashboardState): DashboardState
@@ -24,18 +26,23 @@ internal sealed interface DashboardStateChange {
                         expend = expend,
                         income = income,
                         billList = billList,
-                        iconList = iconList
-                    ).apply { loading = true }
+                        charts = charts,
+                        typeNameMap = typeNameMap
+                    ).apply {
+                        loading = true
+                        Log.d("Dashboard", type.name)
+                    }
                 )
             }
         }
 
         data class Success(
             val type: TimePeriodType,
-            val expend: Double,
-            val income: Double,
+            val expend: Pair<Double, Double>,
+            val income: Pair<Double, Double>,
             val billList: List<BillBean>,
-            val iconList: List<IconBean>
+            val charts: List<BillChart>,
+            val typeNameMap: Map<Int, String> = emptyMap()
         ): BillList
 
         data object Loading: BillList

@@ -4,6 +4,7 @@ import com.github.sagiri_kawaii01.blenh.base.mvi.MviViewState
 import com.github.sagiri_kawaii01.blenh.model.TimePeriodType
 import com.github.sagiri_kawaii01.blenh.model.bean.BillBean
 import com.github.sagiri_kawaii01.blenh.model.bean.IconBean
+import com.github.sagiri_kawaii01.blenh.model.vo.BillChart
 
 data class DashboardState(
     val loadingDialog: Boolean,
@@ -23,9 +24,10 @@ sealed class DashboardListState {
     data object Init: DashboardListState()
     data class Success(
         val type: TimePeriodType,
-        val expend: Double,
-        val income: Double,
+        val expend: Pair<Double, Double>,
+        val income: Pair<Double, Double>,
         val billList: List<BillBean>,
-        val iconList: List<IconBean>
+        val charts: List<BillChart>,
+        val typeNameMap: Map<Int, String> = emptyMap()
     ): DashboardListState()
 }

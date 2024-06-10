@@ -1,29 +1,50 @@
 package com.github.sagiri_kawaii01.blenh.ui.screen.dashboard
 
+import android.annotation.SuppressLint
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.wrapContentHeight
+import androidx.compose.foundation.layout.wrapContentWidth
+import androidx.compose.foundation.lazy.LazyRow
+import androidx.compose.foundation.selection.selectable
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.style.LineHeightStyle
+import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.github.sagiri_kawaii01.blenh.base.mvi.getDispatcher
 import com.github.sagiri_kawaii01.blenh.model.TimePeriodType
+import com.github.sagiri_kawaii01.blenh.model.bean.BillBean
+import com.github.sagiri_kawaii01.blenh.model.vo.BillChart
 import com.github.sagiri_kawaii01.blenh.ui.component.DashConsume
 import com.github.sagiri_kawaii01.blenh.ui.component.IOCard
 import com.github.sagiri_kawaii01.blenh.ui.component.TendencyCard
+import com.github.sagiri_kawaii01.blenh.ui.theme.Blue20
+import com.github.sagiri_kawaii01.blenh.ui.theme.Gray60
 import com.github.sagiri_kawaii01.blenh.util.format
 import com.github.sagiri_kawaii01.blenh.util.today
 import java.time.LocalDate
 import java.time.LocalDateTime
 
+@SuppressLint("UnrememberedMutableInteractionSource")
 @Composable
 fun DashboardScreen(
     viewModel: DashboardViewModel = hiltViewModel()
@@ -35,6 +56,26 @@ fun DashboardScreen(
 
     val today = today()
 
+    val selectButton: @Composable (label: String, active: Boolean, onClick: () -> Unit) -> Unit = { label, active, onClick ->
+        Text(
+            text = label,
+            color = if (active) Color.White else Color.Black,
+            fontSize = 14.sp,
+            textAlign = TextAlign.Center,
+            modifier = Modifier
+                .background(
+                    color = if (active) Blue20 else Gray60,
+                    shape = RoundedCornerShape(20.dp)
+                )
+                .padding(vertical = 6.dp, horizontal = 14.dp)
+
+                .clickable(indication = null, interactionSource = MutableInteractionSource()) {
+                    onClick()
+                }
+
+        )
+    }
+
     when (uiState.dashboardListState) {
         is DashboardListState.Success -> {
             val data = uiState.dashboardListState as DashboardListState.Success
@@ -43,30 +84,71 @@ fun DashboardScreen(
                     .fillMaxSize()
                     .padding(horizontal = 16.dp)
             ) {
-                
-                IOCard(
-                    label = "支出",
-                    text = "￥${data.expend}",
+
+                Row(
                     modifier = Modifier
-                        .height(120.dp)
-                        .width(224.dp)
-                        .background(Color.White)
-                )
+                        .fillMaxWidth()
+                        .height(32.dp)
+                ) {
+                    selectButton("周", data.type == TimePeriodType.Week) {
+                        dispatcher(DashboardIntent.GetBillList(TimePeriodType.Week))
+                    }
+
+                    Spacer(modifier = Modifier.width(8.dp))
+
+                    selectButton("月", data.type == TimePeriodType.Month) {
+                        dispatcher(DashboardIntent.GetBillList(TimePeriodType.Month))
+                    }
+
+                    Spacer(modifier = Modifier.width(8.dp))
+
+                    selectButton("年", data.type == TimePeriodType.Year) {
+                        dispatcher(DashboardIntent.GetBillList(TimePeriodType.Year))
+                    }
+                }
+
+                Spacer(modifier = Modifier.height(24.dp))
+
+                LazyRow {
+                    item {
+                        IOCard(
+                            label = "支出",
+                            text = "￥%.2f".format(data.expend.first),
+                            description = ioCardDescription(data.expend, data.type),
+                            modifier = Modifier
+                                .height(120.dp)
+                                .width(224.dp)
+                                .background(Color.White)
+                        )
+                        
+                        Spacer(modifier = Modifier.width(12.dp))
+
+                        IOCard(
+                            label = "收入",
+                            text = "￥%.2f".format(data.income.first),
+                            description = ioCardDescription(data.income, data.type),
+                            modifier = Modifier
+                                .height(120.dp)
+                                .width(224.dp)
+                                .background(Color.White)
+                        )
+                    }
+                }
 
                 Spacer(modifier = Modifier.height(12.dp))
 
-                val sortedBills = data.billList.sortedBy { LocalDate.of(it.year, it.month, it.day).format() + it.time }
+                val sortedBills = billsToCharts(data.charts, data.type)
 
                 TendencyCard(
                     label = when (data.type) {
-                        TimePeriodType.Week -> "本周支出"
+                        TimePeriodType.Week -> "近期支出"
                         TimePeriodType.Month -> "本月支出"
                         TimePeriodType.Year -> "本年支出"
                         else -> "error"
                     },
-                    values = data.billList.map { it.money.toFloat() },
-                    keyName = numToMonthStr(sortedBills[0].month),
-                    keys = sortedBills.map { it.day.toString() },
+                    values = sortedBills.first,
+                    keyName = sortedBills.third,
+                    keys = sortedBills.second,
                     modifier = Modifier
                         .background(color = Color.White)
                         .height(343.dp)
@@ -77,7 +159,7 @@ fun DashboardScreen(
                 DashConsume(
                     label = "消费记录",
                     billList = data.billList,
-                    typeNameMap = emptyMap(),
+                    typeNameMap = data.typeNameMap,
                     modifier = Modifier.background(Color.White)
                 )
 
@@ -105,5 +187,68 @@ private fun numToMonthStr(num: Int): String {
         11 -> "Nov"
         12 -> "Dec"
         else -> "error"
+    }
+}
+
+private fun ioCardDescription(value: Pair<Double, Double>, type: TimePeriodType): String {
+    val rate = (100.0 * (value.first - value.second) / value.second).toInt()
+    val word = when (type) {
+        TimePeriodType.Week -> "week over week"
+        TimePeriodType.Month -> "month over month"
+        TimePeriodType.Year -> "year over year"
+        else -> "error"
+    }
+    return if (rate < 0) {
+        "$rate% $word"
+    } else {
+        "+$rate% $word"
+    }
+}
+
+private fun billsToWeek(bills: List<BillChart>): Triple<List<Double>, List<String>, String> {
+    val values = Array<Double>(7) { 0.0 }
+    val keys = Array<String>(7) { "" }
+    var currentDay = today()
+    val billMap = bills.associate { LocalDate.of(it.year, it.month, it.day!!) to it.money }
+    for (i in 6 downTo 0) {
+        keys[i] = currentDay.dayOfMonth.toString()
+        values[i] = billMap[currentDay] ?: 0.0
+        currentDay = currentDay.minusDays(1)
+    }
+    currentDay = currentDay.plusDays(1)
+    return Triple(values.toList(), keys.toList(), numToMonthStr(currentDay.monthValue))
+}
+
+private fun billsToMonth(bills: List<BillChart>): Triple<List<Double>, List<String>, String> {
+    var currentDay = today().dayOfMonth
+    val values = Array<Double>(currentDay) { 0.0 }
+    val keys = Array<String>(currentDay) { "" }
+    val billMap = bills.associate { it.day to it.money }
+    for (i in currentDay - 1 downTo 0) {
+        keys[i] = currentDay.toString()
+        values[i] = billMap[currentDay--] ?: 0.0
+    }
+    return Triple(values.toList(), keys.toList(), numToMonthStr(currentDay + 1))
+}
+
+private fun billsToYear(bills: List<BillChart>): Triple<List<Double>, List<String>, String> {
+    val today = today()
+    var currentMonth = today.monthValue
+    val values = Array<Double>(currentMonth) { 0.0 }
+    val keys = Array<String>(currentMonth) { "" }
+    val billMap = bills.associate { it.month to it.money }
+    for (i in currentMonth - 1 downTo 0) {
+        keys[i] = numToMonthStr(currentMonth)
+        values[i] = billMap[currentMonth--] ?: 0.0
+    }
+    return Triple(values.toList(), keys.toList(), today.year.toString())
+}
+
+private fun billsToCharts(charts: List<BillChart>, type: TimePeriodType): Triple<List<Double>, List<String>, String> {
+    return when (type) {
+        TimePeriodType.Week -> billsToWeek(charts)
+        TimePeriodType.Month -> billsToMonth(charts)
+        TimePeriodType.Year -> billsToYear(charts)
+        else -> Triple(listOf(), listOf(), "")
     }
 }

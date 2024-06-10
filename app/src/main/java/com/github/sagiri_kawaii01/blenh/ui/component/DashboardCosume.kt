@@ -2,6 +2,7 @@ package com.github.sagiri_kawaii01.blenh.ui.component
 
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -26,6 +27,9 @@ import com.github.sagiri_kawaii01.blenh.model.PayType
 import com.github.sagiri_kawaii01.blenh.model.bean.BillBean
 import com.github.sagiri_kawaii01.blenh.ui.theme.Gray20
 import com.github.sagiri_kawaii01.blenh.ui.theme.Typography
+import com.github.sagiri_kawaii01.blenh.util.format
+import com.github.sagiri_kawaii01.blenh.util.formatDate
+import java.time.LocalDate
 
 @Composable
 fun DashConsume(
@@ -39,8 +43,10 @@ fun DashConsume(
             items(billList) {
                 ConsumeRecord(
                     type = PayType.fromId(it.payType),
-                    amount = it.money.toFloat(),
-                    label = typeNameMap[it.typeId] ?: "其他"
+                    amount = it.money,
+                    label = typeNameMap[it.typeId] ?: "其他",
+                    label2 = formatDate(it.month, it.day),
+                    label3 = it.time
                 )
             }
         }
@@ -50,8 +56,10 @@ fun DashConsume(
 @Composable
 fun ConsumeRecord(
     type: PayType,
-    amount: Float,
-    label: String
+    amount: Double,
+    label: String,
+    label2: String? = null,
+    label3: String? = null
 ) {
     Row(
         modifier = Modifier
@@ -77,18 +85,42 @@ fun ConsumeRecord(
         Spacer(modifier = Modifier.width(12.dp))
 
         Column {
-            Text(
-                text = label,
-                style = Typography.labelMedium
-            )
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween
+            ) {
+                Text(
+                    text = label,
+                    style = Typography.labelMedium
+                )
+                if (null != label2) {
+                    Text(
+                        text = label2,
+                        style = Typography.labelMedium
+                    )
+
+                }
+            }
 
             Spacer(modifier = Modifier.height(4.dp))
 
-            Text(
-                text = "￥$amount",
-                style = Typography.labelSmall,
-                color = Gray20
-            )
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween
+            ) {
+                Text(
+                    text = "￥$amount",
+                    style = Typography.labelSmall,
+                    color = Gray20
+                )
+                if (null != label3) {
+                    Text(
+                        text = label3,
+                        style = Typography.labelSmall,
+                        color = Gray20
+                    )
+                }
+            }
 
         }
     }

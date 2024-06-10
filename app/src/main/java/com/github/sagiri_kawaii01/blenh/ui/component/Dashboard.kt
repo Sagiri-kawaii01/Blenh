@@ -80,7 +80,7 @@ fun TendencyCard(
     label: String,
     keyName: String,
     keys: List<String>,
-    values: List<Float>,
+    values: List<Double>,
     modifier: Modifier = Modifier
 ) {
     DashCard(label, modifier) {
@@ -94,8 +94,8 @@ fun TendencyCard(
 
             val h = size.height / lines
             val yOffset = 30f
-            val minValue = (values.minOrNull() ?: 0f).roundOff()
-            val maxValue = values.maxOrNull() ?: 0f
+            val minValue = (values.minOrNull() ?: 0.0).roundOff()
+            val maxValue = values.maxOrNull() ?: 0.0
 
             val inc = ((maxValue - minValue) / (lines - 1)).roundOff()
 
@@ -129,7 +129,7 @@ fun TendencyCard(
                         var lastKey = 0
                         var m = 1
                         var lastX = textWidths[0] / 2
-                        points.add(Offset(lastX, pointHeight(values[lastKey], minValue.toFloat(), maxValue, h * (lines - 1)) + yOffset))
+                        points.add(Offset(lastX, pointHeight(values[lastKey].toFloat(), minValue.toFloat(), maxValue.toFloat(), h * (lines - 1)) + yOffset))
                         for (k in 1 until keys.size) {
                             if (elements.contains(k)) {
                                 if (k - lastKey > 1) {
@@ -140,9 +140,9 @@ fun TendencyCard(
                                 }
                                 lastX += spacing + textWidths[m - 1] / 2 + textWidths[m++] / 2
                                 lastKey = k
-                                points.add(Offset(lastX, pointHeight(values[lastKey], minValue.toFloat(), maxValue, h * (lines - 1) + yOffset)))
+                                points.add(Offset(lastX, pointHeight(values[lastKey].toFloat(), minValue.toFloat(), maxValue.toFloat(), h * (lines - 1) + yOffset)))
                             } else {
-                                points.add(Offset(0f, pointHeight(values[k], minValue.toFloat(), maxValue, h * (lines - 1)) + yOffset))
+                                points.add(Offset(0f, pointHeight(values[k].toFloat(), minValue.toFloat(), maxValue.toFloat(), h * (lines - 1)) + yOffset))
                             }
                         }
 
@@ -212,12 +212,12 @@ private fun selectElements(array: List<String>, n: Int): Set<Int> {
     return result
 }
 
-private fun Float.roundOff(): Int {
+private fun Double.roundOff(): Int {
     val tmp = this.toInt().toString()
-    return (tmp[0] - '0') * 10.0.pow((tmp.length - 1).toDouble()).toInt() + if (this < 100) {
+    return (tmp[0] - '0') * 10.0.pow((tmp.length - 1)).toInt() + if (this < 100) {
         0
     } else {
-        (tmp[1] - '0') * 10.0.pow((tmp.length - 2).toDouble()).toInt()
+        (tmp[1] - '0') * 10.0.pow((tmp.length - 2)).toInt()
     }
 }
 

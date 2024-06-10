@@ -7,4 +7,5 @@ import javax.inject.Singleton
 class TypeRepository @Inject constructor(
     private val typeDao: TypeDao
 ) {
+    fun getTypeList() = typeDao.getTypeList()
 }
