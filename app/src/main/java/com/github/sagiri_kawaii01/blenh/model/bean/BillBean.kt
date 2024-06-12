@@ -47,7 +47,11 @@ data class BillBean(
     @ColumnInfo(name = ORDER_COLUMN)
     var order: String? = null,
     @ColumnInfo(name = PAY_TYPE_COLUMN)
-    var payType: Int
+    var payType: Int,
+    @ColumnInfo(name = PAY_METHOD_COLUMN)
+    var payMethod: String? = null,
+    @ColumnInfo(name = TARGET_COLUMN)
+    var target: String? = null
 ): BaseBean {
     companion object {
         const val ID_COLUMN = "id"
@@ -60,6 +64,8 @@ data class BillBean(
         const val ORDER_COLUMN = "order"
         const val PAY_TYPE_COLUMN = "payType"
         const val TIME_COLUMN = "time"
+        const val PAY_METHOD_COLUMN = "payMethod"
+        const val TARGET_COLUMN = "target"
 
         val TEST_DATA = listOf(
             BillBean(

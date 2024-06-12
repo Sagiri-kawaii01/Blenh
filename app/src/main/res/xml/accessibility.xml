@@ -3,7 +3,7 @@
     android:packageNames="com.eg.android.AlipayGphone,com.tencent.mm,cn.gov.pbc.dcep"
     android:accessibilityEventTypes="typeWindowContentChanged"
     android:accessibilityFeedbackType="feedbackGeneric"
-    android:accessibilityFlags="flagDefault"
+    android:accessibilityFlags="flagDefault|flagIncludeNotImportantViews|flagRetrieveInteractiveWindows|flagReportViewIds|flagRequestEnhancedWebAccessibility"
     android:notificationTimeout="100"
     android:canRetrieveWindowContent="true"
     android:canRequestEnhancedWebAccessibility="true"

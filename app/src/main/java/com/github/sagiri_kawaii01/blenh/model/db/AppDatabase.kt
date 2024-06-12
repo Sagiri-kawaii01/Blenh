@@ -14,6 +14,7 @@ import com.github.sagiri_kawaii01.blenh.model.db.dao.BillDao
 import com.github.sagiri_kawaii01.blenh.model.db.dao.CategoryDao
 import com.github.sagiri_kawaii01.blenh.model.db.dao.IconDao
 import com.github.sagiri_kawaii01.blenh.model.db.dao.TypeDao
+import com.github.sagiri_kawaii01.blenh.model.db.migration.Migration_1_2
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 
@@ -26,7 +27,7 @@ const val APP_DATA_BASE_FILE_NAME = "app.db"
         TypeBean::class,
         BillBean::class
     ],
-    version = 1
+    version = 2
 )
 abstract class AppDatabase: RoomDatabase() {
 
@@ -78,7 +79,9 @@ abstract class AppDatabase: RoomDatabase() {
         @Volatile
         private var instance: AppDatabase? = null
 
-        private val migrations = arrayOf<Migration>()
+        private val migrations = arrayOf<Migration>(
+            Migration_1_2
+        )
 
         fun getInstance(context: Context, scope: CoroutineScope): AppDatabase {
             return instance ?: synchronized(this) {
