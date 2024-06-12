@@ -1,7 +1,7 @@
 <accessibility-service xmlns:android="http://schemas.android.com/apk/res/android"
     android:description="@string/accessibility_service_name"
     android:packageNames="com.eg.android.AlipayGphone,com.tencent.mm,cn.gov.pbc.dcep"
-    android:accessibilityEventTypes="typeAllMask"
+    android:accessibilityEventTypes="typeWindowContentChanged"
     android:accessibilityFeedbackType="feedbackGeneric"
     android:accessibilityFlags="flagDefault"
     android:notificationTimeout="100"

@@ -104,8 +104,7 @@ class MainActivity : ComponentActivity() {
     }
 
     private fun isStartAccessibilityServiceEnable(context: Context): Boolean {
-        val am = context.getSystemService(Context.ACCESSIBILITY_SERVICE) as AccessibilityManager
-        val enabledServices = Settings.Secure.getString(context.contentResolver, Settings.Secure.ENABLED_ACCESSIBILITY_SERVICES)
+        val enabledServices = Settings.Secure.getString(context.contentResolver, Settings.Secure.ENABLED_ACCESSIBILITY_SERVICES) ?: return false
         val colonSplitter = TextUtils.SimpleStringSplitter(':')
         colonSplitter.setString(enabledServices)
         while (colonSplitter.hasNext()) {
