@@ -4,6 +4,7 @@ import android.accessibilityservice.AccessibilityServiceInfo
 import android.content.ComponentName
 import android.content.Context
 import android.content.Intent
+import android.net.Uri
 import android.os.Bundle
 import android.provider.Settings
 import android.text.TextUtils
@@ -42,6 +43,7 @@ import com.github.sagiri_kawaii01.blenh.appContext
 import com.github.sagiri_kawaii01.blenh.base.AccessibilityService
 import com.github.sagiri_kawaii01.blenh.base.mvi.getDispatcher
 import com.github.sagiri_kawaii01.blenh.model.TimePeriodType
+import com.github.sagiri_kawaii01.blenh.model.bean.BillBean
 import com.github.sagiri_kawaii01.blenh.ui.screen.dashboard.DashboardIntent
 import com.github.sagiri_kawaii01.blenh.ui.screen.dashboard.DashboardListState
 import com.github.sagiri_kawaii01.blenh.ui.screen.dashboard.DashboardScreen
@@ -49,6 +51,8 @@ import com.github.sagiri_kawaii01.blenh.ui.screen.dashboard.DashboardViewModel
 import com.github.sagiri_kawaii01.blenh.ui.theme.BlenhTheme
 import com.github.sagiri_kawaii01.blenh.ui.theme.Typography
 import dagger.hilt.android.AndroidEntryPoint
+import kotlinx.serialization.encodeToString
+import kotlinx.serialization.json.Json
 
 
 @AndroidEntryPoint
@@ -56,7 +60,10 @@ class MainActivity : ComponentActivity() {
     @OptIn(ExperimentalMaterial3Api::class)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-
+        if (!Settings.canDrawOverlays(this)) {
+            val intent = Intent(Settings.ACTION_MANAGE_OVERLAY_PERMISSION, Uri.parse("package:$packageName"))
+            startActivity(intent)
+        }
         enableEdgeToEdge()
         setContent {
             BlenhTheme {
