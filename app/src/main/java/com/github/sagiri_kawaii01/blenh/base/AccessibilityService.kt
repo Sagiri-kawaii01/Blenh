@@ -27,6 +27,8 @@ import com.github.sagiri_kawaii01.blenh.di.DatabaseModule
 import com.github.sagiri_kawaii01.blenh.model.bean.BillBean
 import com.github.sagiri_kawaii01.blenh.model.db.AppDatabase
 import com.github.sagiri_kawaii01.blenh.model.db.repository.BillRepository
+import com.github.sagiri_kawaii01.blenh.model.db.repository.CategoryRepository
+import com.github.sagiri_kawaii01.blenh.model.db.repository.IconRepository
 import com.github.sagiri_kawaii01.blenh.model.db.repository.TypeRepository
 import com.github.sagiri_kawaii01.blenh.ui.screen.bottomsheet.BottomSheetContent
 import com.github.sagiri_kawaii01.blenh.ui.screen.bottomsheet.BottomSheetViewModel
@@ -135,7 +137,9 @@ class AccessibilityService: AccessibilityService(), SavedStateRegistryOwner, Vie
                         BottomSheetContent(bill = bill) {
                             BottomSheetViewModel(
                                 BillRepository(DatabaseModule.provideBillDao(appDatabase)),
-                                TypeRepository(DatabaseModule.provideTypeDao(appDatabase))
+                                TypeRepository(DatabaseModule.provideTypeDao(appDatabase)),
+                                IconRepository(DatabaseModule.provideIconDao(appDatabase)),
+                                CategoryRepository(DatabaseModule.provideCategoryDao(appDatabase))
                             )
                         }
                     }

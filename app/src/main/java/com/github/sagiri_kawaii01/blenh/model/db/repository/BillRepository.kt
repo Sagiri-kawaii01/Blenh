@@ -19,6 +19,9 @@ import javax.inject.Inject
 class BillRepository @Inject constructor(
     private val billDao: BillDao
 ) {
+
+    fun insert(billBean: BillBean) = billDao.insert(billBean)
+
     fun list(type: TimePeriodType): Flow<List<BillBean>> {
         val today = today()
         return billDao.listWeekEndWith(today.year, today.monthValue, today.dayOfMonth).flowOnIo()

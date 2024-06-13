@@ -52,7 +52,7 @@ class DashboardViewModel @Inject constructor(
             .shareWhileSubscribed()
             .debugLog("Dashboard")
             .toPartialStateChangeFlow()
-            .scan(initialVs) { vs, change ->
+                .scan(initialVs) { vs, change ->
                 change.reduce(vs)
             }
             .stateIn(

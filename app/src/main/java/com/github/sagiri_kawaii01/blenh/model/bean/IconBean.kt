@@ -6,6 +6,7 @@ import androidx.compose.material.icons.filled.DirectionsBus
 import androidx.compose.material.icons.filled.Elderly
 import androidx.compose.material.icons.filled.Pets
 import androidx.compose.material.icons.filled.Restaurant
+import androidx.compose.material.icons.filled.Sell
 import androidx.compose.material.icons.filled.ShoppingCart
 import androidx.compose.material.icons.filled.SportsTennis
 import androidx.compose.material.icons.filled.Vaccines
@@ -33,6 +34,7 @@ data class IconBean(
     companion object {
         const val ID_COLUMN = "id"
         const val RES_ID_COLUMN = "resId"
+        const val DEFAULT_ICON = 8
         val IconList = listOf(
             Icons.Filled.Restaurant,
             Icons.Filled.ShoppingCart,
@@ -42,6 +44,7 @@ data class IconBean(
             Icons.Filled.Vaccines,
             Icons.Filled.Elderly,
             Icons.Filled.SportsTennis,
+            Icons.Filled.Sell
         )
     }
 }

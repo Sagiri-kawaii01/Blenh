@@ -13,5 +13,5 @@ interface IconDao {
     fun insert(icon: IconBean)
 
     @Query("SELECT * FROM $ICON_TABLE_NAME")
-    fun list(): List<IconBean>
+    fun list(): Flow<List<IconBean>>
 }
