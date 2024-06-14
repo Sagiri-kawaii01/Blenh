@@ -58,6 +58,7 @@ class BottomSheetViewModel(
             .debugLog("BottomSheet")
             .toPartialStateChangeFlow()
             .scan(initialVs) { vs, change ->
+                Log.d("Reduce", change.toString())
                 change.reduce(vs)
             }
             .stateIn(
@@ -106,9 +107,11 @@ class BottomSheetViewModel(
                             }
                         }
                         is BottomSheetIntent.GetTypes -> {
-                            flow<List<TypeBean>> { typeRepository.getTypeList() }.flowOnIo().transform { types ->
-                                BottomSheetStateChange.SheetData.GetType(
-                                    types.map { Triple(it.name, it.id, iconMap[intent.icon] ?: IconBean.DEFAULT_ICON) }
+                            typeRepository.getTypeList(intent.categoryId).transform { types ->
+                                emit(
+                                    BottomSheetStateChange.SheetData.GetType(
+                                        types.map { Triple(it.name, it.id, intent.icon) }
+                                    )
                                 )
                             }
                         }

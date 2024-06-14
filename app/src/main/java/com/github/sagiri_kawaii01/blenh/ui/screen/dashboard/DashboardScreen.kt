@@ -52,8 +52,6 @@ fun DashboardScreen(
     val uiState by viewModel.viewState.collectAsState()
     val dispatcher = viewModel.getDispatcher(startWith = DashboardIntent.GetBillList(TimePeriodType.Week))
 
-    uiState.dashboardListState
-
     val today = today()
 
     val selectButton: @Composable (label: String, active: Boolean, onClick: () -> Unit) -> Unit = { label, active, onClick ->
