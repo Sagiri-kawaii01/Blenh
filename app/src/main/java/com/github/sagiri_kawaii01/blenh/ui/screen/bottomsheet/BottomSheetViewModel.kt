@@ -123,6 +123,7 @@ class BottomSheetViewModel(
                         is BottomSheetIntent.Save -> {
                             viewModelScope.launch(Dispatchers.IO) {
                                 billRepository.insert(intent.bill)
+                                sendEvent(BottomSheetEvent.SaveSuccess)
                             }
                             emptyFlow<BottomSheetStateChange>()
                         }

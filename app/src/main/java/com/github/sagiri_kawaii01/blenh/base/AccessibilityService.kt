@@ -160,7 +160,8 @@ class AccessibilityService: AccessibilityService(), SavedStateRegistryOwner, Vie
         Log.d("AccessibilityService", "showBottomSheet")
         lifecycleRegistry.currentState = Lifecycle.State.STARTED
         windowManager.addView(overlayView, layoutParams)
-
+        overlayView.requestLayout()
+        overlayView.invalidate()
     }
 
     @OptIn(ExperimentalMaterial3Api::class)

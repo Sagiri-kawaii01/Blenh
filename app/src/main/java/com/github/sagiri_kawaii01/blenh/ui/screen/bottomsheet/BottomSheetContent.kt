@@ -57,6 +57,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.viewmodel.compose.LocalViewModelStoreOwner
+import com.github.sagiri_kawaii01.blenh.base.mvi.MviSingleEvent
 import com.github.sagiri_kawaii01.blenh.base.mvi.getDispatcher
 import com.github.sagiri_kawaii01.blenh.model.bean.BillBean
 import com.github.sagiri_kawaii01.blenh.model.bean.IconBean
@@ -105,6 +106,11 @@ fun SheetContent(
     ) {
         val uiState by viewModel.viewState.collectAsState()
         val dispatcher = viewModel.getDispatcher(startWith = BottomSheetIntent.GetCategories)
+        val uiEvent by viewModel.singleEvent.collectAsState(initial = null)
+
+        when (uiEvent) {
+            is BottomSheetEvent.SaveSuccess -> onCancel()
+        }
 
         SheetTypeSelector(
             uiState = uiState,
