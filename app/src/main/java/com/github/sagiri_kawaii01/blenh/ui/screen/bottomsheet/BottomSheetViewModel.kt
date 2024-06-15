@@ -23,6 +23,8 @@ import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asFlow
+import kotlinx.coroutines.flow.collect
+import kotlinx.coroutines.flow.collectIndexed
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.emptyFlow
 import kotlinx.coroutines.flow.filter
@@ -34,6 +36,7 @@ import kotlinx.coroutines.flow.merge
 import kotlinx.coroutines.flow.scan
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.take
+import kotlinx.coroutines.flow.toCollection
 import kotlinx.coroutines.flow.transform
 import kotlinx.coroutines.launch
 
@@ -76,13 +79,14 @@ class BottomSheetViewModel(
                 .flatMapLatest {
                     combine(
                         categoryRepository.getCategoryList(),
-                        iconRepository.list()
+                        iconRepository.list(),
                     ) { categories, icons ->
                         this@BottomSheetViewModel.categories = categories
                         this@BottomSheetViewModel.iconMap = icons.associate { it.id to it.resId }
                         BottomSheetStateChange.SheetData.Init(
                             selectedCategoryId = categories[0].id,
-                            iconItems = categories.map { Triple(it.name, it.id, iconMap[it.iconId] ?: IconBean.DEFAULT_ICON) }
+                            iconItems = categories.map { Triple(it.name, it.id, iconMap[it.iconId] ?: IconBean.DEFAULT_ICON) },
+                            1
                         )
                     }
                 }.startWith(BottomSheetStateChange.SheetData.Loading),
@@ -110,16 +114,24 @@ class BottomSheetViewModel(
                             typeRepository.getTypeList(intent.categoryId).transform { types ->
                                 emit(
                                     BottomSheetStateChange.SheetData.GetType(
-                                        types.map { Triple(it.name, it.id, intent.icon) }
+                                        types.map { Triple(it.name, it.id, intent.icon) },
+                                        intent.categoryId
                                     )
                                 )
                             }
                         }
                         is BottomSheetIntent.Save -> {
-                            viewModelScope.launch {
+                            viewModelScope.launch(Dispatchers.IO) {
                                 billRepository.insert(intent.bill)
                             }
                             emptyFlow<BottomSheetStateChange>()
+                        }
+                        is BottomSheetIntent.SelectType -> {
+                            flow {
+                                emit(
+                                    BottomSheetStateChange.SheetData.SelectType(intent.typeId)
+                                )
+                            }
                         }
                         else -> {
                             emptyFlow<BottomSheetStateChange>()

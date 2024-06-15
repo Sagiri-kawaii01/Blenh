@@ -11,8 +11,18 @@ import android.view.View
 import android.view.WindowManager
 import android.view.accessibility.AccessibilityEvent
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.SheetState
+import androidx.compose.material3.SheetValue
+import androidx.compose.material3.rememberBottomSheetScaffoldState
+import androidx.compose.material3.rememberStandardBottomSheetState
 import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.platform.ComposeView
+import androidx.compose.ui.platform.LocalDensity
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleRegistry
 import androidx.lifecycle.ViewModelStore
@@ -36,11 +46,17 @@ import com.github.sagiri_kawaii01.blenh.ui.theme.BlenhTheme
 import com.github.sagiri_kawaii01.blenh.util.access.WechatAccess
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.withContext
 
 class AccessibilityService: AccessibilityService(), SavedStateRegistryOwner, ViewModelStoreOwner {
 
     private var t = 0L
+    private val serviceScope = CoroutineScope(Dispatchers.Main + Job())
     private var rt = System.currentTimeMillis()
     private lateinit var windowManager: WindowManager
     private val lifecycleRegistry = LifecycleRegistry(this)
@@ -49,7 +65,6 @@ class AccessibilityService: AccessibilityService(), SavedStateRegistryOwner, Vie
     }
 
     private lateinit var overlayView: View
-    private lateinit var touchInterceptorView: View
     private val appDatabase: AppDatabase by lazy {
         DatabaseModule.provideAppDatabase(this)
     }
@@ -101,40 +116,21 @@ class AccessibilityService: AccessibilityService(), SavedStateRegistryOwner, Vie
         rt = nrt
         windowManager = getSystemService(Context.WINDOW_SERVICE) as WindowManager
 
-        val displayMetrics = resources.displayMetrics
-        val screenHeight = displayMetrics.heightPixels
-
-        touchInterceptorView = View(this).apply {
-            setBackgroundColor(0x00000000) // 全透明
-            setOnTouchListener { _, event ->
-                if (event.action == MotionEvent.ACTION_DOWN) {
-                    removeView()
-                    true
-                } else {
-                    false
-                }
-            }
-        }
-
-        val interceptorParams = WindowManager.LayoutParams(
-            WindowManager.LayoutParams.MATCH_PARENT,
-            screenHeight / 3 * 2,
-            WindowManager.LayoutParams.TYPE_APPLICATION_OVERLAY,
-            WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE,
-            PixelFormat.TRANSLUCENT
-        )
-        interceptorParams.gravity = Gravity.TOP
-
-        // 添加触摸拦截层到窗口
-        windowManager.addView(touchInterceptorView, interceptorParams)
-
         overlayView = ComposeView(this).apply {
             setContent {
                 BlenhTheme {
                     CompositionLocalProvider(
                         LocalViewModelStoreOwner provides this@AccessibilityService
                     ) {
-                        BottomSheetContent(bill = bill) {
+
+                        BottomSheetContent(
+                            bill = bill,
+                            onDismissRequest = {
+                                serviceScope.launch {
+                                    removeView()
+                                }
+                            }
+                        ) {
                             BottomSheetViewModel(
                                 BillRepository(DatabaseModule.provideBillDao(appDatabase)),
                                 TypeRepository(DatabaseModule.provideTypeDao(appDatabase)),
@@ -147,19 +143,13 @@ class AccessibilityService: AccessibilityService(), SavedStateRegistryOwner, Vie
             }
         }
 
-        overlayView.setOnTouchListener { _, event ->
-            if (event.action == MotionEvent.ACTION_OUTSIDE) {
-                removeView()
-                true
-            } else {
-                false
-            }
-        }
         val layoutParams = WindowManager.LayoutParams(
             WindowManager.LayoutParams.MATCH_PARENT,
-            screenHeight / 3,
+            WindowManager.LayoutParams.MATCH_PARENT,
             WindowManager.LayoutParams.TYPE_APPLICATION_OVERLAY,
-            WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE,
+            WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE or
+                    WindowManager.LayoutParams.FLAG_LAYOUT_IN_SCREEN or
+                    WindowManager.LayoutParams.FLAG_LAYOUT_NO_LIMITS,
             PixelFormat.TRANSLUCENT
         )
 
@@ -168,25 +158,29 @@ class AccessibilityService: AccessibilityService(), SavedStateRegistryOwner, Vie
         overlayView.setViewTreeSavedStateRegistryOwner(this@AccessibilityService)
 
         Log.d("AccessibilityService", "showBottomSheet")
-        windowManager.addView(overlayView, layoutParams)
         lifecycleRegistry.currentState = Lifecycle.State.STARTED
+        windowManager.addView(overlayView, layoutParams)
+
     }
 
     @OptIn(ExperimentalMaterial3Api::class)
-    private fun removeView() {
-        viewModelStore.clear()
-        Log.d("AccessibilityService", "RemoveShowBottomSheet")
-        if (::overlayView.isInitialized) {
-            windowManager.removeView(overlayView)
-        }
-        if (::touchInterceptorView.isInitialized) {
-            windowManager.removeView(touchInterceptorView)
+    private suspend fun removeView() {
+        withContext(Dispatchers.Main) {
+            viewModelStore.clear()
+            Log.d("AccessibilityService", "RemoveShowBottomSheet")
+            if (::overlayView.isInitialized) {
+                windowManager.removeView(overlayView)
+            }
         }
     }
 
     override fun onDestroy() {
         super.onDestroy()
-        removeView()
+        serviceScope.launch {
+            runBlocking {
+                removeView()
+            }
+        }
         lifecycleRegistry.currentState = Lifecycle.State.DESTROYED
         viewModelStore.clear()
     }

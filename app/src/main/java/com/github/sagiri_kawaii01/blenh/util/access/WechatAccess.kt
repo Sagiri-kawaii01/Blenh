@@ -28,11 +28,10 @@ object WechatAccess: PayAccess {
                         target = payInfoRoot.getChild(0).getChild(0).text.toString(),
                         payMethod = payInfoRoot.getChild(3).getChild(0).getChild(1).getChild(1).getChild(0).text.toString()
                     )
-                    return bill
                 }
             } else {
                 val success = kinda[0].findAccessibilityNodeInfosByText("支付成功")
-                // todo 跳出分类选择
+
                 if (success.isNotEmpty()) {
                     val paySuccessRoot = findWechatPaySuccessRootNode(success[0])
 

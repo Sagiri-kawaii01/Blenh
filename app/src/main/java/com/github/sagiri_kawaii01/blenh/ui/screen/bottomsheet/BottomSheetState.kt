@@ -24,6 +24,7 @@ sealed class BottomSheetDataState {
         val categoryPage: Int = 0,
         val typePage: Int = 0,
         val selectedCategoryId: Int? = null,
+        val selectedTypeId: Int? = null,
         val iconItems: List<Triple<String, Int, Int>> = emptyList()
     ): BottomSheetDataState()
 }

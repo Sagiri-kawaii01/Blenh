@@ -24,6 +24,7 @@ internal sealed interface BottomSheetStateChange {
                         dataState = BottomSheetDataState.Success(
                             selectingCategory = true,
                             selectingType = false,
+                            selectedTypeId = selectTypeId,
                             selectedCategoryId = selectedCategoryId,
                             iconItems = iconItems
                         ).apply {
@@ -36,7 +37,8 @@ internal sealed interface BottomSheetStateChange {
                         dataState = (oldState.dataState as BottomSheetDataState.Success).copy(
                             selectingType = true,
                             selectingCategory = false,
-                            iconItems = iconItems
+                            iconItems = iconItems,
+                            selectedCategoryId = categoryId
                         )
                     )
                 }
@@ -54,20 +56,30 @@ internal sealed interface BottomSheetStateChange {
                         )
                     )
                 }
+                is SelectType -> {
+                    oldState.copy(
+                        dataState = (oldState.dataState as BottomSheetDataState.Success).copy(
+                            selectedTypeId = typeId
+                        )
+                    )
+                }
             }
         }
 
         data class GetType(
-            val iconItems: List<Triple<String, Int, Int>> = emptyList()
+            val iconItems: List<Triple<String, Int, Int>> = emptyList(),
+            val categoryId: Int
         ): SheetData
 
         data class Init(
             val selectedCategoryId: Int,
-            val iconItems: List<Triple<String, Int, Int>>
+            val iconItems: List<Triple<String, Int, Int>>,
+            val selectTypeId: Int,
         ): SheetData
 
         data class CategoryPage(val page: Int): SheetData
         data class TypePage(val page: Int): SheetData
+        data class SelectType(val typeId: Int): SheetData
         data object BackCategory: SheetData
 
         data object Loading: SheetData
