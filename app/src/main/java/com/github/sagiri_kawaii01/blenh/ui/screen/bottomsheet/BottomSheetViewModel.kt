@@ -97,17 +97,19 @@ class BottomSheetViewModel(
                     when (intent) {
                         is BottomSheetIntent.BackCategory -> {
                             flow<BottomSheetStateChange> {
-                                BottomSheetStateChange.SheetData.BackCategory
+                                emit(BottomSheetStateChange.SheetData.BackCategory(
+                                    categories.map { Triple(it.name, it.id, iconMap[it.iconId] ?: IconBean.DEFAULT_ICON) }
+                                ))
                             }
                         }
                         is BottomSheetIntent.CategoryPage -> {
                             flow<BottomSheetStateChange> {
-                                BottomSheetStateChange.SheetData.CategoryPage(intent.page)
+                                emit(BottomSheetStateChange.SheetData.CategoryPage(intent.page))
                             }
                         }
                         is BottomSheetIntent.TypePage -> {
                             flow<BottomSheetStateChange> {
-                                BottomSheetStateChange.SheetData.TypePage(intent.page)
+                                emit(BottomSheetStateChange.SheetData.TypePage(intent.page))
                             }
                         }
                         is BottomSheetIntent.GetTypes -> {

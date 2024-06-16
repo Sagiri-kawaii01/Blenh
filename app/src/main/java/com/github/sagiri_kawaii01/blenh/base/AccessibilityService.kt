@@ -8,21 +8,26 @@ import android.util.Log
 import android.view.Gravity
 import android.view.MotionEvent
 import android.view.View
+import android.view.WindowInsetsController
 import android.view.WindowManager
 import android.view.accessibility.AccessibilityEvent
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.SheetState
 import androidx.compose.material3.SheetValue
+import androidx.compose.material3.Surface
 import androidx.compose.material3.rememberBottomSheetScaffoldState
 import androidx.compose.material3.rememberStandardBottomSheetState
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.SideEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.platform.ComposeView
 import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.platform.LocalView
+import androidx.core.view.WindowCompat
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleRegistry
 import androidx.lifecycle.ViewModelStore
@@ -122,7 +127,6 @@ class AccessibilityService: AccessibilityService(), SavedStateRegistryOwner, Vie
                     CompositionLocalProvider(
                         LocalViewModelStoreOwner provides this@AccessibilityService
                     ) {
-
                         BottomSheetContent(
                             bill = bill,
                             onDismissRequest = {
@@ -146,22 +150,20 @@ class AccessibilityService: AccessibilityService(), SavedStateRegistryOwner, Vie
         val layoutParams = WindowManager.LayoutParams(
             WindowManager.LayoutParams.MATCH_PARENT,
             WindowManager.LayoutParams.MATCH_PARENT,
-            WindowManager.LayoutParams.TYPE_APPLICATION_OVERLAY,
-            WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE or
+            WindowManager.LayoutParams.TYPE_ACCESSIBILITY_OVERLAY,
                     WindowManager.LayoutParams.FLAG_LAYOUT_IN_SCREEN or
-                    WindowManager.LayoutParams.FLAG_LAYOUT_NO_LIMITS,
+                    WindowManager.LayoutParams.FLAG_LAYOUT_NO_LIMITS ,
             PixelFormat.TRANSLUCENT
         )
-
         layoutParams.gravity = Gravity.BOTTOM
+        layoutParams.fitInsetsTypes = 0
         overlayView.setViewTreeLifecycleOwner(this@AccessibilityService)
         overlayView.setViewTreeSavedStateRegistryOwner(this@AccessibilityService)
 
         Log.d("AccessibilityService", "showBottomSheet")
         lifecycleRegistry.currentState = Lifecycle.State.STARTED
         windowManager.addView(overlayView, layoutParams)
-        overlayView.requestLayout()
-        overlayView.invalidate()
+
     }
 
     @OptIn(ExperimentalMaterial3Api::class)
