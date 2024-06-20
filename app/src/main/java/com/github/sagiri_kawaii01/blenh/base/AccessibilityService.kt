@@ -4,6 +4,7 @@ import android.accessibilityservice.AccessibilityService
 import android.annotation.SuppressLint
 import android.content.Context
 import android.graphics.PixelFormat
+import android.os.Build
 import android.util.Log
 import android.view.Gravity
 import android.view.MotionEvent
@@ -11,6 +12,7 @@ import android.view.View
 import android.view.WindowInsetsController
 import android.view.WindowManager
 import android.view.accessibility.AccessibilityEvent
+import androidx.annotation.RequiresApi
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.SheetState
 import androidx.compose.material3.SheetValue
@@ -48,6 +50,7 @@ import com.github.sagiri_kawaii01.blenh.model.db.repository.TypeRepository
 import com.github.sagiri_kawaii01.blenh.ui.screen.bottomsheet.BottomSheetContent
 import com.github.sagiri_kawaii01.blenh.ui.screen.bottomsheet.BottomSheetViewModel
 import com.github.sagiri_kawaii01.blenh.ui.theme.BlenhTheme
+import com.github.sagiri_kawaii01.blenh.util.access.AliPayAccess
 import com.github.sagiri_kawaii01.blenh.util.access.WechatAccess
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -86,6 +89,7 @@ class AccessibilityService: AccessibilityService(), SavedStateRegistryOwner, Vie
         lifecycleRegistry.currentState = Lifecycle.State.CREATED
     }
 
+    @RequiresApi(Build.VERSION_CODES.R)
     override fun onAccessibilityEvent(event: AccessibilityEvent) {
         if (event.eventTime - t < 250) {
             return
@@ -97,6 +101,7 @@ class AccessibilityService: AccessibilityService(), SavedStateRegistryOwner, Vie
         Log.d("AccessibilityService", event.toString())
         val bill = when (event.packageName) {
             "com.tencent.mm" -> WechatAccess.handle(event.source!!)
+            "com.eg.android.AlipayGphone" -> AliPayAccess.handle(rootInActiveWindow)
             else -> null
         }
         if (null != bill) {
@@ -111,6 +116,7 @@ class AccessibilityService: AccessibilityService(), SavedStateRegistryOwner, Vie
         }
     }
 
+    @RequiresApi(Build.VERSION_CODES.R)
     @OptIn(ExperimentalMaterial3Api::class)
     @SuppressLint("ClickableViewAccessibility")
     private fun showBottomSheet(bill: BillBean) {
