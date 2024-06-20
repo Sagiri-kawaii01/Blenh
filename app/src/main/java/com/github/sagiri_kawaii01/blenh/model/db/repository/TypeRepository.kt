@@ -9,5 +9,6 @@ class TypeRepository @Inject constructor(
     private val typeDao: TypeDao
 ) {
     fun getTypeList() = typeDao.getTypeList()
+    fun getTypeFlow() = typeDao.getTypeFlow()
     fun getTypeList(categoryId: Int) = typeDao.getTypeList(categoryId).flowOnIo()
 }

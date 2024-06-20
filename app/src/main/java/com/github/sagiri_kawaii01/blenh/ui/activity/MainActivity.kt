@@ -14,6 +14,7 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -24,26 +25,43 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Menu
+import androidx.compose.material3.DrawerValue
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.ModalDrawerSheet
+import androidx.compose.material3.ModalNavigationDrawer
+import androidx.compose.material3.NavigationDrawerItem
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
+import androidx.compose.material3.rememberDrawerState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.navigation.NavController
+import androidx.navigation.NavHostController
+import androidx.navigation.compose.NavHost
+import androidx.navigation.compose.composable
+import androidx.navigation.compose.currentBackStackEntryAsState
+import androidx.navigation.compose.rememberNavController
 import com.github.sagiri_kawaii01.blenh.appContext
 import com.github.sagiri_kawaii01.blenh.base.AccessibilityService
 import com.github.sagiri_kawaii01.blenh.base.mvi.getDispatcher
 import com.github.sagiri_kawaii01.blenh.model.TimePeriodType
 import com.github.sagiri_kawaii01.blenh.model.bean.BillBean
+import com.github.sagiri_kawaii01.blenh.ui.local.LocalNavController
+import com.github.sagiri_kawaii01.blenh.ui.route.ROUTE_BILL_LIST
+import com.github.sagiri_kawaii01.blenh.ui.route.ROUTE_DASHBOARD
+import com.github.sagiri_kawaii01.blenh.ui.screen.billlist.BillListScreen
 import com.github.sagiri_kawaii01.blenh.ui.screen.dashboard.DashboardIntent
 import com.github.sagiri_kawaii01.blenh.ui.screen.dashboard.DashboardListState
 import com.github.sagiri_kawaii01.blenh.ui.screen.dashboard.DashboardScreen
@@ -51,12 +69,16 @@ import com.github.sagiri_kawaii01.blenh.ui.screen.dashboard.DashboardViewModel
 import com.github.sagiri_kawaii01.blenh.ui.theme.BlenhTheme
 import com.github.sagiri_kawaii01.blenh.ui.theme.Typography
 import dagger.hilt.android.AndroidEntryPoint
+import kotlinx.coroutines.launch
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 
 
 @AndroidEntryPoint
 class MainActivity : ComponentActivity() {
+
+    private lateinit var navController: NavHostController
+
     @OptIn(ExperimentalMaterial3Api::class)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -66,48 +88,106 @@ class MainActivity : ComponentActivity() {
         }
         enableEdgeToEdge()
         setContent {
-            BlenhTheme {
-                Scaffold(
-                    topBar = {
-                        TopAppBar(
-                            title = {
-                                Box(modifier = Modifier.fillMaxWidth(),
-                                    contentAlignment = Alignment.Center) {
-                                    Text(text = "收支统计", style = Typography.titleMedium)
+            navController = rememberNavController()
+            val navBackStackEntry by navController.currentBackStackEntryAsState()
+            CompositionLocalProvider(
+                LocalNavController provides navController
+            ) {
+                BlenhTheme {
+                    val drawerState = rememberDrawerState(initialValue = DrawerValue.Closed)
+                    val scope = rememberCoroutineScope()
+
+                    ModalNavigationDrawer(
+                        drawerContent = {
+                            ModalDrawerSheet {
+                                Column {
+                                    NavigationDrawerItem(
+                                        label = {
+                                            Text(text = "收支统计")
+                                        },
+                                        selected = navBackStackEntry?.destination?.route == ROUTE_DASHBOARD,
+                                        onClick = {
+                                            scope.launch {
+                                                drawerState.close()
+                                            }
+                                            navController.navigate(ROUTE_DASHBOARD)
+                                        })
+                                    NavigationDrawerItem(
+                                        label = {
+                                            Text(text = "账单列表")
+                                        },
+                                        selected = navBackStackEntry?.destination?.route == ROUTE_BILL_LIST,
+                                        onClick = {
+                                            scope.launch {
+                                                drawerState.close()
+                                            }
+                                            navController.navigate(ROUTE_BILL_LIST)
+                                        })
                                 }
-                            },
-                            navigationIcon = {
-                                IconButton(onClick = {}) {
-                                    Icon(
-                                        Icons.Filled.Menu, 
-                                        contentDescription = null,
-                                        modifier = Modifier.size(24.dp)
-                                    )
-                                }
-                            },
-                            actions = {
-                                Spacer(modifier = Modifier.width(48.dp))
-                            },
-                            modifier = Modifier.padding(vertical = 6.dp)
-                        )
-                    },
-                    modifier = Modifier.fillMaxSize()
-                ) { innerPadding ->
-                    Surface(
-                        modifier = Modifier.padding(innerPadding)
+                            }
+                        },
+                        drawerState = drawerState
                     ) {
-                        DashboardScreen()
+                        Scaffold(
+                            topBar = {
+                                TopAppBar(
+                                    title = {
+                                        Box(modifier = Modifier.fillMaxWidth(),
+                                            contentAlignment = Alignment.Center) {
+                                            val text = when (navBackStackEntry?.destination?.route) {
+                                                ROUTE_DASHBOARD -> "收支统计"
+                                                ROUTE_BILL_LIST -> "账单列表"
+                                                else -> navBackStackEntry?.destination?.route ?: "未知页面"
+                                            }
+                                            Text(text = text, style = Typography.titleMedium)
+                                        }
+                                    },
+                                    navigationIcon = {
+                                        IconButton(onClick = {
+                                            scope.launch {
+                                                if (drawerState.isClosed) {
+                                                    drawerState.open()
+                                                } else {
+                                                    drawerState.close()
+                                                }
+                                            }
+                                        }) {
+                                            Icon(
+                                                Icons.Filled.Menu,
+                                                contentDescription = null,
+                                                modifier = Modifier.size(24.dp)
+                                            )
+                                        }
+                                    },
+                                    actions = {
+                                        Spacer(modifier = Modifier.width(48.dp))
+                                    },
+                                    modifier = Modifier.padding(vertical = 6.dp)
+                                )
+                            },
+                            modifier = Modifier.fillMaxSize(),
+                        ) { innerPadding ->
+                            Surface(
+                                modifier = Modifier.padding(innerPadding)
+                            ) {
+                                NavHost(navController = navController, startDestination = ROUTE_DASHBOARD) {
+                                    composable(ROUTE_DASHBOARD) { DashboardScreen() }
+                                    composable(ROUTE_BILL_LIST) { BillListScreen() }
+                                }
+                            }
+                        }
                     }
                 }
             }
+
         }
-        if (!isStartAccessibilityServiceEnable(appContext)) {
-            try {
-                openAccessibilityService(appContext)
-            } catch (e: Exception) {
-                Log.e("APP", e.toString())
-            }
-        }
+//        if (!isStartAccessibilityServiceEnable(appContext)) {
+//            try {
+//                openAccessibilityService(appContext)
+//            } catch (e: Exception) {
+//                Log.e("APP", e.toString())
+//            }
+//        }
     }
 
     private fun isStartAccessibilityServiceEnable(context: Context): Boolean {
@@ -128,38 +208,5 @@ class MainActivity : ComponentActivity() {
             flags = Intent.FLAG_ACTIVITY_NEW_TASK
         }
         context.startActivity(intent)
-    }
-}
-
-@Composable
-fun Greeting(name: String,
-             modifier: Modifier = Modifier,
-             viewModel: DashboardViewModel = hiltViewModel()) {
-    val uiState by viewModel.viewState.collectAsState()
-
-    viewModel.getDispatcher(startWith = DashboardIntent.GetBillList(TimePeriodType.Week))
-
-    Text(
-        text = "Hello world!",
-        modifier = modifier
-    )
-
-    when (uiState.dashboardListState) {
-        is DashboardListState.Success -> {
-            LazyColumn {
-                items((uiState.dashboardListState as DashboardListState.Success).billList) {
-                    Text(text = it.time)
-                }
-            }
-        }
-        else -> Unit
-    }
-}
-
-@Preview(showBackground = true)
-@Composable
-fun GreetingPreview() {
-    BlenhTheme {
-        Greeting("Android")
     }
 }

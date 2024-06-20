@@ -31,6 +31,35 @@ interface BillDao {
     fun totalBetween(sYear: Int, sMonth: Int, sDay: Int, eYear: Int, eMonth: Int, eDay: Int): Flow<Double>
 
     @Query("""
+        SELECT * FROM $BILL_TABLE_NAME
+        WHERE year || '-' || printf('%02d', month) || '-' || printf('%02d', day) BETWEEN 
+              printf('%04d-%02d-%02d', :sYear, :sMonth, :sDay)
+              AND printf('%04d-%02d-%02d', :eYear, :eMonth, :eDay)
+    """)
+    fun listBetween(sYear: Int, sMonth: Int, sDay: Int, eYear: Int, eMonth: Int, eDay: Int): Flow<List<BillBean>>
+
+    @Query("""
+        SELECT * FROM $BILL_TABLE_NAME
+        WHERE year || '-' || printf('%02d', month) || '-' || printf('%02d', day) BETWEEN 
+              printf('%04d-%02d-%02d', :sYear, :sMonth, :sDay)
+              AND printf('%04d-%02d-%02d', :eYear, :eMonth, :eDay)
+              AND (
+                ${BillBean.REMARK_COLUMN} LIKE '%' || :search || '%' OR
+                ${BillBean.TARGET_COLUMN} LIKE '%' || :search || '%'
+              )
+    """)
+    fun listBetweenWithSearch(sYear: Int, sMonth: Int, sDay: Int, eYear: Int, eMonth: Int, eDay: Int, search: String): Flow<List<BillBean>>
+
+
+    fun listBetweenSearch(sYear: Int, sMonth: Int, sDay: Int, eYear: Int, eMonth: Int, eDay: Int, search: String): Flow<List<BillBean>> {
+        return if (search.isEmpty()) {
+            listBetween(sYear, sMonth, sDay, eYear, eMonth, eDay)
+        } else {
+            listBetweenWithSearch(sYear, sMonth, sDay, eYear, eMonth, eDay, search)
+        }
+    }
+
+    @Query("""
         SELECT year, month, day, SUM(money) AS money
         FROM $BILL_TABLE_NAME
         WHERE

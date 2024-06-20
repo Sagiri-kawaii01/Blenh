@@ -17,6 +17,7 @@ import androidx.compose.foundation.layout.wrapContentWidth
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.selection.selectable
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
@@ -37,6 +38,7 @@ import com.github.sagiri_kawaii01.blenh.model.vo.BillChart
 import com.github.sagiri_kawaii01.blenh.ui.component.DashConsume
 import com.github.sagiri_kawaii01.blenh.ui.component.IOCard
 import com.github.sagiri_kawaii01.blenh.ui.component.TendencyCard
+import com.github.sagiri_kawaii01.blenh.ui.component.TimePeriodButton
 import com.github.sagiri_kawaii01.blenh.ui.theme.Blue20
 import com.github.sagiri_kawaii01.blenh.ui.theme.Gray60
 import com.github.sagiri_kawaii01.blenh.util.format
@@ -44,7 +46,6 @@ import com.github.sagiri_kawaii01.blenh.util.today
 import java.time.LocalDate
 import java.time.LocalDateTime
 
-@SuppressLint("UnrememberedMutableInteractionSource")
 @Composable
 fun DashboardScreen(
     viewModel: DashboardViewModel = hiltViewModel()
@@ -54,113 +55,97 @@ fun DashboardScreen(
 
     val today = today()
 
-    val selectButton: @Composable (label: String, active: Boolean, onClick: () -> Unit) -> Unit = { label, active, onClick ->
-        Text(
-            text = label,
-            color = if (active) Color.White else Color.Black,
-            fontSize = 14.sp,
-            textAlign = TextAlign.Center,
-            modifier = Modifier
-                .background(
-                    color = if (active) Blue20 else Gray60,
-                    shape = RoundedCornerShape(20.dp)
-                )
-                .padding(vertical = 6.dp, horizontal = 14.dp)
-
-                .clickable(indication = null, interactionSource = MutableInteractionSource()) {
-                    onClick()
-                }
-
-        )
-    }
-
     when (uiState.dashboardListState) {
         is DashboardListState.Success -> {
             val data = uiState.dashboardListState as DashboardListState.Success
-            Column(
+            Scaffold(
                 modifier = Modifier
                     .fillMaxSize()
-                    .padding(horizontal = 16.dp)
+                    .padding(horizontal = 16.dp),
+                topBar = {
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(32.dp)
+                    ) {
+                        TimePeriodButton("周", data.type == TimePeriodType.Week) {
+                            dispatcher(DashboardIntent.GetBillList(TimePeriodType.Week))
+                        }
+
+                        Spacer(modifier = Modifier.width(8.dp))
+
+                        TimePeriodButton("月", data.type == TimePeriodType.Month) {
+                            dispatcher(DashboardIntent.GetBillList(TimePeriodType.Month))
+                        }
+
+                        Spacer(modifier = Modifier.width(8.dp))
+
+                        TimePeriodButton("年", data.type == TimePeriodType.Year) {
+                            dispatcher(DashboardIntent.GetBillList(TimePeriodType.Year))
+                        }
+                    }
+                }
             ) {
 
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(32.dp)
-                ) {
-                    selectButton("周", data.type == TimePeriodType.Week) {
-                        dispatcher(DashboardIntent.GetBillList(TimePeriodType.Week))
+
+                Column(modifier = Modifier.padding(it)) {
+
+                    Spacer(modifier = Modifier.height(24.dp))
+
+                    LazyRow {
+                        item {
+                            IOCard(
+                                label = "支出",
+                                text = "￥%.2f".format(data.expend.first),
+                                description = ioCardDescription(data.expend, data.type),
+                                modifier = Modifier
+                                    .height(120.dp)
+                                    .width(224.dp)
+                                    .background(Color.White)
+                            )
+
+                            Spacer(modifier = Modifier.width(12.dp))
+
+                            IOCard(
+                                label = "收入",
+                                text = "￥%.2f".format(data.income.first),
+                                description = ioCardDescription(data.income, data.type),
+                                modifier = Modifier
+                                    .height(120.dp)
+                                    .width(224.dp)
+                                    .background(Color.White)
+                            )
+                        }
                     }
 
-                    Spacer(modifier = Modifier.width(8.dp))
+                    Spacer(modifier = Modifier.height(12.dp))
 
-                    selectButton("月", data.type == TimePeriodType.Month) {
-                        dispatcher(DashboardIntent.GetBillList(TimePeriodType.Month))
-                    }
+                    val sortedBills = billsToCharts(data.charts, data.type)
 
-                    Spacer(modifier = Modifier.width(8.dp))
+                    TendencyCard(
+                        label = when (data.type) {
+                            TimePeriodType.Week -> "近期支出"
+                            TimePeriodType.Month -> "本月支出"
+                            TimePeriodType.Year -> "本年支出"
+                            else -> "error"
+                        },
+                        values = sortedBills.first,
+                        keyName = sortedBills.third,
+                        keys = sortedBills.second,
+                        modifier = Modifier
+                            .background(color = Color.White)
+                            .height(343.dp)
+                    )
 
-                    selectButton("年", data.type == TimePeriodType.Year) {
-                        dispatcher(DashboardIntent.GetBillList(TimePeriodType.Year))
-                    }
+                    Spacer(modifier = Modifier.height(12.dp))
+
+                    DashConsume(
+                        label = "消费记录",
+                        billList = data.billList,
+                        typeNameMap = data.typeNameMap,
+                        modifier = Modifier.background(Color.White)
+                    )
                 }
-
-                Spacer(modifier = Modifier.height(24.dp))
-
-                LazyRow {
-                    item {
-                        IOCard(
-                            label = "支出",
-                            text = "￥%.2f".format(data.expend.first),
-                            description = ioCardDescription(data.expend, data.type),
-                            modifier = Modifier
-                                .height(120.dp)
-                                .width(224.dp)
-                                .background(Color.White)
-                        )
-                        
-                        Spacer(modifier = Modifier.width(12.dp))
-
-                        IOCard(
-                            label = "收入",
-                            text = "￥%.2f".format(data.income.first),
-                            description = ioCardDescription(data.income, data.type),
-                            modifier = Modifier
-                                .height(120.dp)
-                                .width(224.dp)
-                                .background(Color.White)
-                        )
-                    }
-                }
-
-                Spacer(modifier = Modifier.height(12.dp))
-
-                val sortedBills = billsToCharts(data.charts, data.type)
-
-                TendencyCard(
-                    label = when (data.type) {
-                        TimePeriodType.Week -> "近期支出"
-                        TimePeriodType.Month -> "本月支出"
-                        TimePeriodType.Year -> "本年支出"
-                        else -> "error"
-                    },
-                    values = sortedBills.first,
-                    keyName = sortedBills.third,
-                    keys = sortedBills.second,
-                    modifier = Modifier
-                        .background(color = Color.White)
-                        .height(343.dp)
-                )
-
-                Spacer(modifier = Modifier.height(12.dp))
-                
-                DashConsume(
-                    label = "消费记录",
-                    billList = data.billList,
-                    typeNameMap = data.typeNameMap,
-                    modifier = Modifier.background(Color.White)
-                )
-
             }
         }
 

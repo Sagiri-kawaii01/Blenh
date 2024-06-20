@@ -13,7 +13,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import com.github.sagiri_kawaii01.blenh.ui.activity.Greeting
 import com.github.sagiri_kawaii01.blenh.ui.theme.BlenhTheme
 import com.github.sagiri_kawaii01.blenh.ui.theme.Gray0
 import com.github.sagiri_kawaii01.blenh.ui.theme.Gray20

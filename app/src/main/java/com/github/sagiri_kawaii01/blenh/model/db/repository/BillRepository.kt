@@ -27,6 +27,51 @@ class BillRepository @Inject constructor(
         return billDao.listWeekEndWith(today.year, today.monthValue, today.dayOfMonth).flowOnIo()
     }
 
+    fun listSearch(type: TimePeriodType, search: String): Flow<List<BillBean>> {
+        val today = today()
+        return when (type) {
+            TimePeriodType.Week ->{
+                val start = today.minusDays(7)
+                billDao.listBetweenSearch(
+                    start.year,
+                    start.monthValue,
+                    start.dayOfMonth,
+                    today.year,
+                    today.monthValue,
+                    today.dayOfMonth,
+                    search
+                ).flowOnIo()
+            }
+            TimePeriodType.Month -> {
+                val start = today.minusDays(today.dayOfMonth.toLong() - 1)
+                billDao.listBetweenSearch(
+                    start.year,
+                    start.monthValue,
+                    start.dayOfMonth,
+                    today.year,
+                    today.monthValue,
+                    today.dayOfMonth,
+                    search
+                ).flowOnIo()
+            }
+            TimePeriodType.Year -> {
+                val start = today.minusDays(today.dayOfYear.toLong() - 1)
+                billDao.listBetweenSearch(
+                    start.year,
+                    start.monthValue,
+                    start.dayOfMonth,
+                    today.year,
+                    today.monthValue,
+                    today.dayOfMonth,
+                    search
+                ).flowOnIo()
+            }
+            else -> {
+                emptyFlow()
+            }
+        }
+    }
+
     fun expend(type: TimePeriodType): Flow<Pair<Double, Double>> {
         var end = today()
         var start = end.getStart(type)
