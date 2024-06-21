@@ -3,6 +3,7 @@ package com.github.sagiri_kawaii01.blenh.ui.component
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -14,6 +15,7 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -25,11 +27,11 @@ import androidx.compose.ui.unit.dp
 import com.github.sagiri_kawaii01.blenh.R
 import com.github.sagiri_kawaii01.blenh.model.PayType
 import com.github.sagiri_kawaii01.blenh.model.bean.BillBean
+import com.github.sagiri_kawaii01.blenh.model.bean.IconBean
+import com.github.sagiri_kawaii01.blenh.ui.screen.billlist.BillRecord
 import com.github.sagiri_kawaii01.blenh.ui.theme.Gray20
 import com.github.sagiri_kawaii01.blenh.ui.theme.Typography
-import com.github.sagiri_kawaii01.blenh.util.format
 import com.github.sagiri_kawaii01.blenh.util.formatDate
-import java.time.LocalDate
 
 @Composable
 fun DashConsume(
@@ -54,20 +56,42 @@ fun DashConsume(
 }
 
 @Composable
+fun BillList(
+    label: String,
+    billList: List<BillRecord>,
+    modifier: Modifier = Modifier
+) {
+    DashCard(label = label, modifier) {
+        LazyColumn {
+            items(billList) {
+                ConsumeRecord(
+                    type = PayType.fromId(it.payType),
+                    amount = it.money,
+                    label = it.label,
+                    label2 = it.date,
+                    label3 = it.time,
+                    clip = false
+                ) {
+                    Icon(
+                        imageVector = IconBean.IconList[it.iconIdx],
+                        contentDescription = "",
+                        modifier = Modifier.size(32.dp)
+                    )
+                }
+            }
+        }
+    }
+}
+
+@Composable
 fun ConsumeRecord(
     type: PayType,
     amount: Double,
     label: String,
     label2: String? = null,
-    label3: String? = null
-) {
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .background(Color.White)
-            .padding(vertical = 8.dp),
-        verticalAlignment = Alignment.CenterVertically
-    ) {
+    label3: String? = null,
+    clip: Boolean = true,
+    icon: @Composable () -> Unit = {
         Image(
             painter = painterResource(id =
             when (type) {
@@ -76,11 +100,29 @@ fun ConsumeRecord(
                 PayType.AliPay -> R.drawable.alipay
             }
             ),
-            contentDescription = "支付方式图标",
+            contentDescription = "支付方式图标"
+        )
+    }
+) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .background(Color.White)
+            .padding(vertical = 8.dp),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+
+        Box(
             modifier = Modifier
                 .size(32.dp)
-                .clip(shape = CircleShape)
-        )
+                .run {
+                    if (clip) {
+                        this.clip(shape = CircleShape)
+                    } else this
+                }
+        ) {
+            icon()
+        }
 
         Spacer(modifier = Modifier.width(12.dp))
 

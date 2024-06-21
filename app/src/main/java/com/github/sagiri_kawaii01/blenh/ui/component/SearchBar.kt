@@ -1,6 +1,9 @@
 package com.github.sagiri_kawaii01.blenh.ui.component
 
+import androidx.compose.animation.core.animateDpAsState
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
@@ -10,9 +13,11 @@ import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Search
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -24,44 +29,78 @@ import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.TextFieldValue
+import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.github.sagiri_kawaii01.blenh.ui.theme.Gray20
 import com.github.sagiri_kawaii01.blenh.ui.theme.Typography
+import kotlin.math.sin
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun SearchBar(
     onSearch: (String) -> Unit
 ) {
     var isSearchActive by remember { mutableStateOf(false) }
     var searchQuery by remember { mutableStateOf(TextFieldValue("")) }
-
+    val source = remember { MutableInteractionSource() }
+    val width by animateDpAsState(targetValue = if (isSearchActive) 200.dp else 0.dp, label = "searchWidth")
     Box(
         contentAlignment = Alignment.CenterEnd
     ) {
         if (isSearchActive) {
-            OutlinedTextField(
+            BasicTextField(
                 value = searchQuery,
                 onValueChange = {
                     searchQuery = it
                 },
-                textStyle = Typography.bodySmall.copy(fontSize = 6.sp),
-                modifier = Modifier
-                    .width(200.dp)
-                    .height(32.dp),
+                textStyle = Typography.bodyMedium,
                 singleLine = true,
-                trailingIcon = {
-                    Icon(
-                        imageVector = Icons.Default.Search,
-                        contentDescription = "Search",
-                        tint = Gray20
-                    )
-                },
+                modifier = Modifier
+                    .width(width)
+                    .padding(0.dp),
                 keyboardOptions = KeyboardOptions(imeAction = ImeAction.Search),
                 keyboardActions = KeyboardActions(onSearch = {
                     onSearch(searchQuery.text)
                     isSearchActive = false
-                })
+                    searchQuery = TextFieldValue("")
+                }),
+                interactionSource = source,
+                decorationBox = @Composable { innerTextField ->
+                    OutlinedTextFieldDefaults.DecorationBox(
+                        value = searchQuery.text,
+                        visualTransformation = VisualTransformation.None,
+                        innerTextField = innerTextField,
+                        placeholder = null,
+                        label = null,
+                        leadingIcon = null,
+                        trailingIcon = {
+                            Icon(
+                                imageVector = Icons.Default.Search,
+                                contentDescription = "Search",
+                                tint = Gray20
+                            )
+                        },
+                        contentPadding = PaddingValues(horizontal = 8.dp),
+                        prefix = null,
+                        suffix = null,
+                        supportingText = null,
+                        singleLine = true,
+                        enabled = true,
+                        isError = false,
+                        interactionSource = source,
+                        colors = OutlinedTextFieldDefaults.colors(),
+                        container = {
+                            OutlinedTextFieldDefaults.ContainerBox(
+                                enabled = true,
+                                isError = false,
+                                source,
+                                OutlinedTextFieldDefaults.colors(),
+                                OutlinedTextFieldDefaults.shape
+                            )
+                        }
+                    )
+                }
             )
         } else {
             IconButton(onClick = { isSearchActive = true }) {

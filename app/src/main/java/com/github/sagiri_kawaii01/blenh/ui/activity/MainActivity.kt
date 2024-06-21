@@ -73,6 +73,10 @@ import kotlinx.coroutines.launch
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 
+val tabItem = listOf(
+    "收支统计" to ROUTE_DASHBOARD,
+    "账单列表" to ROUTE_BILL_LIST
+)
 
 @AndroidEntryPoint
 class MainActivity : ComponentActivity() {
@@ -99,34 +103,27 @@ class MainActivity : ComponentActivity() {
 
                     ModalNavigationDrawer(
                         drawerContent = {
-                            ModalDrawerSheet {
+                            ModalDrawerSheet(
+                                modifier = Modifier.width(240.dp)
+                            ) {
                                 Column {
-                                    NavigationDrawerItem(
-                                        label = {
-                                            Text(text = "收支统计")
-                                        },
-                                        selected = navBackStackEntry?.destination?.route == ROUTE_DASHBOARD,
-                                        onClick = {
-                                            scope.launch {
-                                                drawerState.close()
-                                            }
-                                            navController.navigate(ROUTE_DASHBOARD)
-                                        })
-                                    NavigationDrawerItem(
-                                        label = {
-                                            Text(text = "账单列表")
-                                        },
-                                        selected = navBackStackEntry?.destination?.route == ROUTE_BILL_LIST,
-                                        onClick = {
-                                            scope.launch {
-                                                drawerState.close()
-                                            }
-                                            navController.navigate(ROUTE_BILL_LIST)
-                                        })
+                                    tabItem.forEach { item ->
+                                        NavigationDrawerItem(
+                                            label = {
+                                                Text(text = item.first)
+                                            },
+                                            selected = navBackStackEntry?.destination?.route == item.second,
+                                            onClick = {
+                                                scope.launch {
+                                                    drawerState.close()
+                                                    navController.navigate(item.second)
+                                                }
+                                            })
+                                    }
                                 }
                             }
                         },
-                        drawerState = drawerState
+                        drawerState = drawerState,
                     ) {
                         Scaffold(
                             topBar = {
