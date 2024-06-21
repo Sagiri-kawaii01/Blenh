@@ -14,10 +14,12 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.key
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -63,20 +65,22 @@ fun BillList(
 ) {
     DashCard(label = label, modifier) {
         LazyColumn {
-            items(billList) {
-                ConsumeRecord(
-                    type = PayType.fromId(it.payType),
-                    amount = it.money,
-                    label = it.label,
-                    label2 = it.date,
-                    label3 = it.time,
-                    clip = false
-                ) {
-                    Icon(
-                        imageVector = IconBean.IconList[it.iconIdx],
-                        contentDescription = "",
-                        modifier = Modifier.size(32.dp)
-                    )
+            items(billList) { item ->
+                key(item.id) {
+                    ConsumeRecord(
+                        type = PayType.fromId(item.payType),
+                        amount = item.money,
+                        label = item.label,
+                        label2 = item.date,
+                        label3 = item.time,
+                        clip = false
+                    ) {
+                        Icon(
+                            imageVector = IconBean.IconList[item.iconIdx],
+                            contentDescription = "",
+                            modifier = Modifier.size(32.dp)
+                        )
+                    }
                 }
             }
         }
@@ -94,11 +98,11 @@ fun ConsumeRecord(
     icon: @Composable () -> Unit = {
         Image(
             painter = painterResource(id =
-            when (type) {
-                PayType.Wechat -> R.drawable.wechat
-                PayType.Rmb -> R.drawable.rmb
-                PayType.AliPay -> R.drawable.alipay
-            }
+                when (type) {
+                    PayType.Wechat -> R.drawable.wechat
+                    PayType.Rmb -> R.drawable.rmb
+                    PayType.AliPay -> R.drawable.alipay
+                }
             ),
             contentDescription = "支付方式图标"
         )

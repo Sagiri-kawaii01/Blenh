@@ -10,5 +10,6 @@ interface BottomSheetIntent: MviIntent {
     data class TypePage(val page: Int): BottomSheetIntent
     data class GetTypes(val categoryId: Int, val icon: Int): BottomSheetIntent
     data class SelectType(val typeId: Int): BottomSheetIntent
+    data class SelectCategory(val categoryId: Int): BottomSheetIntent
     data class Save(val bill: BillBean): BottomSheetIntent
 }

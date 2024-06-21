@@ -50,6 +50,7 @@ import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.key
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
@@ -84,6 +85,7 @@ import com.github.sagiri_kawaii01.blenh.model.bean.TypeBean
 import com.github.sagiri_kawaii01.blenh.ui.screen.dashboard.DashboardViewModel
 import com.github.sagiri_kawaii01.blenh.ui.theme.Gray20
 import com.github.sagiri_kawaii01.blenh.ui.theme.Gray60
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.filter
@@ -238,10 +240,13 @@ fun SheetTypeSelector(
             val pagerState = rememberPagerState(pageCount = {
                 (pageSize - 1 + data.iconItems.size) / pageSize
             })
+            val scope = rememberCoroutineScope()
 
             LaunchedEffect(uiState.dataState.selectingCategory) {
                 if (uiState.dataState.selectingCategory) {
                     pagerState.animateScrollToPage(uiState.dataState.categoryPage)
+                } else {
+                    pagerState.animateScrollToPage(0)
                 }
             }
 
@@ -294,69 +299,36 @@ fun SheetTypeSelector(
                         modifier = Modifier.weight(1f)
                     ) { page ->
                         val offset = pageSize * page
-                        val pageDataCount = (data.iconItems.size - offset).let {
-                            if (it > pageSize) {
-                                pageSize
-                            } else {
-                                it
-                            }
+                        val pageDataCount = remember(data.iconItems.size, offset) {
+                            (data.iconItems.size - offset).coerceAtMost(pageSize)
                         }
-                        val line1Size = if (pageDataCount > pageSize / 2) {
-                            pageSize / 2
-                        } else {
-                            pageDataCount
+                        val line1Size = remember(pageDataCount) {
+                            pageDataCount.coerceAtMost(pageSize / 2)
                         }
                         val line2Size = pageDataCount - line1Size
-                        Column {
-                            Row(
-                                modifier = Modifier.fillMaxWidth(),
-                                horizontalArrangement = Arrangement.SpaceAround
-                            ) {
-                                for (i in 0 until line1Size) {
-                                    IconItem(
-                                        icon = IconBean.IconList[data.iconItems[offset + i].third],
-                                        text = data.iconItems[offset + i].first,
-                                        select = if (data.selectingCategory) {
-                                            data.selectedCategoryId == data.iconItems[offset + i].second
-                                        } else {
-                                            data.selectedTypeId == data.iconItems[offset + i].second
-                                        }
-                                    ) {
-                                        if (data.selectingCategory) {
-                                            dispatcher.invoke(BottomSheetIntent.GetTypes(data.iconItems[offset + i].second, data.iconItems[offset + i].third))
-                                        } else {
-                                            dispatcher.invoke(BottomSheetIntent.SelectType(data.iconItems[offset + i].second))
-                                        }
-                                    }
-                                }
-                            }
 
-                            Row(
-                                modifier = Modifier.fillMaxWidth(),
-                                horizontalArrangement = Arrangement.SpaceAround
-                            ) {
-                                for (i in 0 until line2Size) {
-                                    val j = i + pageSize / 2
-                                    IconItem(
-                                        icon = IconBean.IconList[data.iconItems[offset + j].third],
-                                        text = data.iconItems[offset + j].first,
-                                        select = if (data.selectingCategory) {
-                                            data.selectedCategoryId == data.iconItems[offset + j].second
-                                        } else {
-                                            data.selectedTypeId == data.iconItems[offset + j].second
-                                        }
-                                    ) {
-                                        if (data.selectingCategory) {
-                                            dispatcher.invoke(BottomSheetIntent.GetTypes(data.iconItems[offset + j].second, data.iconItems[offset + j].third))
-                                        } else {
-                                            dispatcher.invoke(BottomSheetIntent.SelectType(data.iconItems[offset + j].second))
-                                        }
-                                    }
-                                }
-                                if (0 == line2Size) {
-                                    Spacer(modifier = Modifier.height(72.dp))
-                                }
-                            }
+                        Column {
+                            IconRow(
+                                items = data.iconItems,
+                                offset = offset,
+                                count = line1Size,
+                                selectingCategory = data.selectingCategory,
+                                selectedCategoryId = data.selectedCategoryId,
+                                selectedTypeId = data.selectedTypeId,
+                                dispatcher = dispatcher,
+                                scope = scope
+                            )
+                            IconRow(
+                                items = data.iconItems,
+                                offset = offset + line1Size,
+                                count = line2Size,
+                                selectingCategory = data.selectingCategory,
+                                selectedCategoryId = data.selectedCategoryId,
+                                selectedTypeId = data.selectedTypeId,
+                                dispatcher = dispatcher,
+                                scope = scope
+                            )
+                            if (line2Size == 0) Spacer(modifier = Modifier.height(72.dp))
                         }
                     }
 
@@ -376,6 +348,48 @@ fun SheetTypeSelector(
                 }
             }
 
+        }
+    }
+}
+
+@Composable
+fun IconRow(
+    items: List<Triple<String, Int, Int>>,
+    offset: Int,
+    count: Int,
+    selectingCategory: Boolean,
+    selectedCategoryId: Int?,
+    selectedTypeId: Int?,
+    dispatcher: (BottomSheetIntent) -> Unit,
+    scope: CoroutineScope
+) {
+    Row(
+        modifier = Modifier.fillMaxWidth(),
+        horizontalArrangement = Arrangement.SpaceAround
+    ) {
+        for (i in 0 until count) {
+            val item = items[offset + i]
+            key(item) {
+                IconItem(
+                    icon = IconBean.IconList[item.third],
+                    text = item.first,
+                    select = if (selectingCategory) {
+                        selectedCategoryId == item.second
+                    } else {
+                        selectedTypeId == item.second
+                    }
+                ) {
+                    if (selectingCategory) {
+                        scope.launch {
+                            dispatcher.invoke(BottomSheetIntent.SelectCategory(item.second))
+                            delay(200)
+                            dispatcher.invoke(BottomSheetIntent.GetTypes(item.second, item.third))
+                        }
+                    } else {
+                        dispatcher.invoke(BottomSheetIntent.SelectType(item.second))
+                    }
+                }
+            }
         }
     }
 }

@@ -65,7 +65,7 @@ abstract class AppDatabase: RoomDatabase() {
                 categoryDao.insert(it)
             }
 
-            TypeBean.TEST_DATA.forEach {
+            TypeBean.TypeList.forEach {
                 typeDao.insert(it)
             }
 

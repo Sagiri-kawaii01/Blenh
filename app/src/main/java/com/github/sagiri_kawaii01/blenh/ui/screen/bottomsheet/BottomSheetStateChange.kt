@@ -41,6 +41,8 @@ internal sealed interface BottomSheetStateChange {
                             selectingType = true,
                             selectingCategory = false,
                             iconItems = iconItems,
+                            typePage = 0,
+                            selectedTypeId = iconItems[0].second,
                             selectedCategoryId = categoryId
                         )
                     )
@@ -66,6 +68,13 @@ internal sealed interface BottomSheetStateChange {
                         )
                     )
                 }
+                is SelectCategory -> {
+                    oldState.copy(
+                        dataState = (oldState.dataState as BottomSheetDataState.Success).copy(
+                            selectedTypeId = categoryId
+                        )
+                    )
+                }
             }
         }
 
@@ -83,6 +92,7 @@ internal sealed interface BottomSheetStateChange {
         data class CategoryPage(val page: Int): SheetData
         data class TypePage(val page: Int): SheetData
         data class SelectType(val typeId: Int): SheetData
+        data class SelectCategory(val categoryId: Int): SheetData
         data class BackCategory(val iconItems: List<Triple<String, Int, Int>>): SheetData
 
         data object Loading: SheetData

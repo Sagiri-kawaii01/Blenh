@@ -35,6 +35,7 @@ interface BillDao {
         WHERE year || '-' || printf('%02d', month) || '-' || printf('%02d', day) BETWEEN 
               printf('%04d-%02d-%02d', :sYear, :sMonth, :sDay)
               AND printf('%04d-%02d-%02d', :eYear, :eMonth, :eDay)
+        ORDER BY datetime(year || '-' || printf('%02d', month) || '-' || printf('%02d', day) || ' ' || time) DESC
     """)
     fun listBetween(sYear: Int, sMonth: Int, sDay: Int, eYear: Int, eMonth: Int, eDay: Int): Flow<List<BillBean>>
 
@@ -47,6 +48,7 @@ interface BillDao {
                 ${BillBean.REMARK_COLUMN} LIKE '%' || :search || '%' OR
                 ${BillBean.TARGET_COLUMN} LIKE '%' || :search || '%'
               )
+        ORDER BY datetime(year || '-' || printf('%02d', month) || '-' || printf('%02d', day) || ' ' || time) DESC
     """)
     fun listBetweenWithSearch(sYear: Int, sMonth: Int, sDay: Int, eYear: Int, eMonth: Int, eDay: Int, search: String): Flow<List<BillBean>>
 

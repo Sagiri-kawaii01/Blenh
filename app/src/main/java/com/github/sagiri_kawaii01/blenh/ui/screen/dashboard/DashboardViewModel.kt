@@ -29,6 +29,7 @@ import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.take
 import kotlinx.coroutines.flow.transform
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import javax.inject.Inject
 
 @HiltViewModel
@@ -45,6 +46,7 @@ class DashboardViewModel @Inject constructor(
         }
 
         val initialVs = DashboardState.initial()
+
         viewState = merge(
             intentSharedFlow.filterIsInstance<DashboardIntent.GetBillList>(),
             intentSharedFlow.filterNot { it is DashboardIntent.GetBillList }

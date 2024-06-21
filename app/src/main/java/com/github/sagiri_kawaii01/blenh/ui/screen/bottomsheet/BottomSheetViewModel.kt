@@ -16,6 +16,7 @@ import com.github.sagiri_kawaii01.blenh.ui.screen.dashboard.DashboardIntent
 import com.github.sagiri_kawaii01.blenh.ui.screen.dashboard.DashboardState
 import com.github.sagiri_kawaii01.blenh.util.flowOnIo
 import com.github.sagiri_kawaii01.blenh.util.startWith
+import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
@@ -39,6 +40,8 @@ import kotlinx.coroutines.flow.take
 import kotlinx.coroutines.flow.toCollection
 import kotlinx.coroutines.flow.transform
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
+import javax.inject.Inject
 
 class BottomSheetViewModel(
     private val billRepository: BillRepository,
@@ -125,7 +128,9 @@ class BottomSheetViewModel(
                         is BottomSheetIntent.Save -> {
                             viewModelScope.launch(Dispatchers.IO) {
                                 billRepository.insert(intent.bill)
-                                sendEvent(BottomSheetEvent.SaveSuccess)
+                                withContext(Dispatchers.Main.immediate) {
+                                    sendEvent(BottomSheetEvent.SaveSuccess)
+                                }
                             }
                             emptyFlow<BottomSheetStateChange>()
                         }
@@ -133,6 +138,13 @@ class BottomSheetViewModel(
                             flow {
                                 emit(
                                     BottomSheetStateChange.SheetData.SelectType(intent.typeId)
+                                )
+                            }
+                        }
+                        is BottomSheetIntent.SelectCategory -> {
+                            flow {
+                                emit(
+                                    BottomSheetStateChange.SheetData.SelectCategory(intent.categoryId)
                                 )
                             }
                         }

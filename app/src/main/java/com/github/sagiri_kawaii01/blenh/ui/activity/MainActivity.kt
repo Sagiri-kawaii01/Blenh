@@ -61,6 +61,7 @@ import com.github.sagiri_kawaii01.blenh.model.bean.BillBean
 import com.github.sagiri_kawaii01.blenh.ui.local.LocalNavController
 import com.github.sagiri_kawaii01.blenh.ui.route.ROUTE_BILL_LIST
 import com.github.sagiri_kawaii01.blenh.ui.route.ROUTE_DASHBOARD
+import com.github.sagiri_kawaii01.blenh.ui.route.ROUTE_TEST
 import com.github.sagiri_kawaii01.blenh.ui.screen.billlist.BillListScreen
 import com.github.sagiri_kawaii01.blenh.ui.screen.dashboard.DashboardIntent
 import com.github.sagiri_kawaii01.blenh.ui.screen.dashboard.DashboardListState
@@ -75,7 +76,7 @@ import kotlinx.serialization.json.Json
 
 val tabItem = listOf(
     "收支统计" to ROUTE_DASHBOARD,
-    "账单列表" to ROUTE_BILL_LIST
+    "账单列表" to ROUTE_BILL_LIST,
 )
 
 @AndroidEntryPoint

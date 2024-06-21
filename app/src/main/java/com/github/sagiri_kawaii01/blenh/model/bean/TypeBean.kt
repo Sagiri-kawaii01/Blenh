@@ -43,7 +43,7 @@ data class TypeBean(
         const val NAME_COLUMN = "name"
         const val SORT_COLUMN = "sort"
 
-        val TEST_DATA = listOf(
+        val TypeList = listOf(
             TypeBean(categoryId = 1, name = "早餐", sort = 0),
             TypeBean(categoryId = 1, name = "午餐", sort = 1),
             TypeBean(categoryId = 1, name = "晚餐", sort = 2),
