@@ -15,6 +15,7 @@ import com.github.sagiri_kawaii01.blenh.model.db.dao.CategoryDao
 import com.github.sagiri_kawaii01.blenh.model.db.dao.IconDao
 import com.github.sagiri_kawaii01.blenh.model.db.dao.TypeDao
 import com.github.sagiri_kawaii01.blenh.model.db.migration.Migration_1_2
+import com.github.sagiri_kawaii01.blenh.model.db.migration.Migration_2_3
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 
@@ -27,7 +28,7 @@ const val APP_DATA_BASE_FILE_NAME = "app.db"
         TypeBean::class,
         BillBean::class
     ],
-    version = 2
+    version = 3
 )
 abstract class AppDatabase: RoomDatabase() {
 
@@ -60,8 +61,8 @@ abstract class AppDatabase: RoomDatabase() {
             for (index in IconBean.IconList.indices) {
                 iconDao.insert(IconBean(resId = index))
             }
-            for (index in CategoryBean.CategoryList.indices) {
-                categoryDao.insert(CategoryBean(name = CategoryBean.CategoryList[index], iconId = index + 1))
+            CategoryBean.CategoryList.forEach {
+                categoryDao.insert(it)
             }
 
             TypeBean.TEST_DATA.forEach {
@@ -80,7 +81,8 @@ abstract class AppDatabase: RoomDatabase() {
         private var instance: AppDatabase? = null
 
         private val migrations = arrayOf<Migration>(
-            Migration_1_2
+            Migration_1_2,
+            Migration_2_3
         )
 
         fun getInstance(context: Context, scope: CoroutineScope): AppDatabase {

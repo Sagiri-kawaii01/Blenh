@@ -12,13 +12,13 @@ interface TypeDao {
     @Insert
     fun insert(type: TypeBean)
 
-    @Query("SELECT * FROM $TYPE_TABLE_NAME")
+    @Query("SELECT * FROM $TYPE_TABLE_NAME ORDER BY ${TypeBean.SORT_COLUMN}")
     fun getTypeList(): List<TypeBean>
 
-    @Query("SELECT * FROM $TYPE_TABLE_NAME")
+    @Query("SELECT * FROM $TYPE_TABLE_NAME ORDER BY ${TypeBean.SORT_COLUMN}")
     fun getTypeFlow(): Flow<List<TypeBean>>
 
-    @Query("SELECT * FROM $TYPE_TABLE_NAME WHERE ${TypeBean.CATEGORY_ID_COLUMN} = :cateGoryId")
+    @Query("SELECT * FROM $TYPE_TABLE_NAME WHERE ${TypeBean.CATEGORY_ID_COLUMN} = :cateGoryId ORDER BY ${TypeBean.SORT_COLUMN}")
     fun getTypeList(cateGoryId: Int): Flow<List<TypeBean>>
 
 

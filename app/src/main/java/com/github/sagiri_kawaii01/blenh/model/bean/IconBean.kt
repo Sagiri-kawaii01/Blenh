@@ -1,12 +1,17 @@
 package com.github.sagiri_kawaii01.blenh.model.bean
 
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.AttachMoney
 import androidx.compose.material.icons.filled.Bolt
+import androidx.compose.material.icons.filled.Book
 import androidx.compose.material.icons.filled.DirectionsBus
 import androidx.compose.material.icons.filled.Elderly
+import androidx.compose.material.icons.filled.Games
 import androidx.compose.material.icons.filled.Pets
+import androidx.compose.material.icons.filled.QuestionMark
 import androidx.compose.material.icons.filled.Restaurant
 import androidx.compose.material.icons.filled.Sell
+import androidx.compose.material.icons.filled.SettingsBackupRestore
 import androidx.compose.material.icons.filled.ShoppingCart
 import androidx.compose.material.icons.filled.SportsTennis
 import androidx.compose.material.icons.filled.Vaccines
@@ -39,12 +44,13 @@ data class IconBean(
             Icons.Filled.Restaurant,
             Icons.Filled.ShoppingCart,
             Icons.Filled.DirectionsBus,
+            Icons.Filled.Games,
             Icons.Filled.Pets,
             Icons.Filled.WaterDrop,
             Icons.Filled.Vaccines,
-            Icons.Filled.Elderly,
-            Icons.Filled.SportsTennis,
-            Icons.Filled.Sell
+            Icons.Filled.Book,
+            Icons.Filled.SettingsBackupRestore,
+            Icons.Filled.AttachMoney
         )
     }
 }

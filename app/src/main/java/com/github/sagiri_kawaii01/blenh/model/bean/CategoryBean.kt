@@ -33,22 +33,27 @@ data class CategoryBean(
     @ColumnInfo(name = NAME_COLUMN)
     val name: String,
     @ColumnInfo(name = ICON_ID_COLUMN)
-    val iconId: Int
+    val iconId: Int,
+    @ColumnInfo(name = SORT_COLUMN, defaultValue = "0")
+    val sort: Int
 ): BaseBean {
     companion object {
         const val ID_COLUMN = "id"
         const val NAME_COLUMN = "name"
         const val ICON_ID_COLUMN = "iconId"
+        const val SORT_COLUMN = "sort"
 
         val CategoryList = listOf(
-            "饮食",
-            "购物",
-            "交通",
-            "宠物",
-            "生活缴费",
-            "医疗",
-            "赡养",
-            "运动",
+            CategoryBean(name = "饮食", iconId = 1, sort = 0),
+            CategoryBean(name = "购物", iconId = 2, sort = 1),
+            CategoryBean(name = "交通", iconId = 3, sort = 2),
+            CategoryBean(name = "娱乐", iconId = 4, sort = 3),
+            CategoryBean(name = "宠物", iconId = 5, sort = 4),
+            CategoryBean(name = "生活缴费", iconId = 6, sort = 5),
+            CategoryBean(name = "医疗", iconId = 7, sort = 6),
+            CategoryBean(name = "教育", iconId = 8, sort = 7),
+            CategoryBean(name = "其他", iconId = 9, sort = 99),
+            CategoryBean(name = "金融", iconId = 10, sort = 8),
         )
     }
 }

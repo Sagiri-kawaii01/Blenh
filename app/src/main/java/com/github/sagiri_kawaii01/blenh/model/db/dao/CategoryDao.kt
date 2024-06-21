@@ -12,6 +12,6 @@ interface CategoryDao {
     @Insert
     suspend fun insert(category: CategoryBean)
 
-    @Query("SELECT * FROM $CATEGORY_TABLE_NAME")
+    @Query("SELECT * FROM $CATEGORY_TABLE_NAME ORDER BY ${CategoryBean.SORT_COLUMN}")
     fun getCategoryList(): Flow<List<CategoryBean>>
 }
