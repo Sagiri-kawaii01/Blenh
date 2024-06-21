@@ -178,13 +178,13 @@ class MainActivity : ComponentActivity() {
             }
 
         }
-//        if (!isStartAccessibilityServiceEnable(appContext)) {
-//            try {
-//                openAccessibilityService(appContext)
-//            } catch (e: Exception) {
-//                Log.e("APP", e.toString())
-//            }
-//        }
+        if (!isStartAccessibilityServiceEnable(appContext)) {
+            try {
+                openAccessibilityService(appContext)
+            } catch (e: Exception) {
+                Log.e("APP", e.toString())
+            }
+        }
     }
 
     private fun isStartAccessibilityServiceEnable(context: Context): Boolean {

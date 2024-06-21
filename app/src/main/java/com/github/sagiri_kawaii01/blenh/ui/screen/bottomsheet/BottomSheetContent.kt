@@ -24,6 +24,8 @@ import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicTextField
+import androidx.compose.foundation.text.KeyboardActions
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Restaurant
 import androidx.compose.material.icons.outlined.ArrowBackIosNew
@@ -36,6 +38,7 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.SheetValue
 import androidx.compose.material3.Surface
@@ -55,15 +58,22 @@ import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.RectangleShape
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.layout.onGloballyPositioned
+import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.window.Popup
+import androidx.compose.ui.window.PopupProperties
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.viewmodel.compose.LocalViewModelStoreOwner
 import com.github.sagiri_kawaii01.blenh.base.mvi.MviSingleEvent
@@ -74,6 +84,7 @@ import com.github.sagiri_kawaii01.blenh.model.bean.TypeBean
 import com.github.sagiri_kawaii01.blenh.ui.screen.dashboard.DashboardViewModel
 import com.github.sagiri_kawaii01.blenh.ui.theme.Gray20
 import com.github.sagiri_kawaii01.blenh.ui.theme.Gray60
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.launch
@@ -144,10 +155,27 @@ fun SheetContent(
 
             Spacer(modifier = Modifier.width(32.dp))
 
-            Text(
-                text = "备注",
-                modifier = Modifier.weight(1f)
-            )
+            var showPopup by remember { mutableStateOf(false) }
+
+            Box(modifier = Modifier.weight(1f)) {
+                Text(
+                    text = bill.remark ?: "备注",
+                    modifier = Modifier
+                        .clickable {
+                            showPopup = true
+                        }
+                )
+            }
+            if (showPopup) {
+                FloatingInputPopup(
+                    onDismiss = { showPopup = false },
+                    onDone = {
+                        bill.remark = it
+                        showPopup = false
+                    }
+                )
+
+            }
 
         }
 
@@ -184,7 +212,6 @@ fun SheetContent(
                     val data = uiState.dataState as BottomSheetDataState.Success
                     bill.typeId = data.selectedTypeId ?: 0
                     dispatcher.invoke(BottomSheetIntent.Save(bill))
-                    // todo 保存成功event触发关闭窗口
                 }
             ) {
                 Text(
@@ -379,3 +406,62 @@ fun IconItem(
     }
 }
 
+@Composable
+fun FloatingInputPopup(
+    onDismiss: () -> Unit,
+    onDone: (String) -> Unit
+) {
+    var inputText by remember { mutableStateOf("") }
+    val keyboardController = LocalSoftwareKeyboardController.current
+    val focusRequester = remember {
+        FocusRequester()
+    }
+    Popup(
+        alignment = Alignment.BottomCenter,
+        onDismissRequest = onDismiss,
+        properties = PopupProperties(
+            focusable = true,
+            dismissOnBackPress = true,
+            dismissOnClickOutside = true
+        )
+    ) {
+        Box(
+            modifier = Modifier
+                .padding(bottom = with(LocalDensity.current) { 0.dp }) // Adjust this padding as needed
+                .fillMaxWidth()
+                .background(MaterialTheme.colorScheme.surface, MaterialTheme.shapes.medium)
+                .padding(16.dp)
+        ) {
+            BasicTextField(
+                value = inputText,
+                onValueChange = {
+                    inputText = it
+                },
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .focusRequester(focusRequester),
+                textStyle = TextStyle(color = Color.Black),
+                keyboardOptions = KeyboardOptions.Default.copy(
+                    imeAction = ImeAction.Done
+                ),
+                keyboardActions = KeyboardActions(
+                    onDone = {
+                        onDone(inputText)
+                    }
+                )
+            )
+        }
+    }
+    
+    LaunchedEffect(Unit) {
+        delay(100)
+        focusRequester.requestFocus()
+        keyboardController?.show()
+    }
+
+    DisposableEffect(Unit) {
+        onDispose {
+            keyboardController?.hide()
+        }
+    }
+}
