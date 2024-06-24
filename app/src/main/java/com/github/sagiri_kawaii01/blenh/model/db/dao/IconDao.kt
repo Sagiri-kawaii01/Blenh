@@ -14,4 +14,7 @@ interface IconDao {
 
     @Query("SELECT * FROM $ICON_TABLE_NAME")
     fun list(): Flow<List<IconBean>>
+
+    @Query("SELECT * FROM $ICON_TABLE_NAME WHERE id = :id")
+    fun getById(id: Int): IconBean
 }

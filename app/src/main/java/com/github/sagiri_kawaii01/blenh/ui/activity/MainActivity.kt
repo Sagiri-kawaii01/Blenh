@@ -1,6 +1,5 @@
 package com.github.sagiri_kawaii01.blenh.ui.activity
 
-import android.accessibilityservice.AccessibilityServiceInfo
 import android.content.ComponentName
 import android.content.Context
 import android.content.Intent
@@ -9,7 +8,6 @@ import android.os.Bundle
 import android.provider.Settings
 import android.text.TextUtils
 import android.util.Log
-import android.view.accessibility.AccessibilityManager
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
@@ -21,8 +19,6 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Menu
 import androidx.compose.material3.DrawerValue
@@ -37,42 +33,31 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.rememberDrawerState
-import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
-import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import androidx.hilt.navigation.compose.hiltViewModel
-import androidx.navigation.NavController
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
+import androidx.navigation.navArgument
 import com.github.sagiri_kawaii01.blenh.appContext
 import com.github.sagiri_kawaii01.blenh.base.AccessibilityService
-import com.github.sagiri_kawaii01.blenh.base.mvi.getDispatcher
-import com.github.sagiri_kawaii01.blenh.model.TimePeriodType
-import com.github.sagiri_kawaii01.blenh.model.bean.BillBean
 import com.github.sagiri_kawaii01.blenh.ui.local.LocalNavController
 import com.github.sagiri_kawaii01.blenh.ui.route.ROUTE_BILL_LIST
 import com.github.sagiri_kawaii01.blenh.ui.route.ROUTE_DASHBOARD
-import com.github.sagiri_kawaii01.blenh.ui.route.ROUTE_TEST
+import com.github.sagiri_kawaii01.blenh.ui.route.ROUTE_PAY_DETAIL
 import com.github.sagiri_kawaii01.blenh.ui.screen.billlist.BillListScreen
-import com.github.sagiri_kawaii01.blenh.ui.screen.dashboard.DashboardIntent
-import com.github.sagiri_kawaii01.blenh.ui.screen.dashboard.DashboardListState
 import com.github.sagiri_kawaii01.blenh.ui.screen.dashboard.DashboardScreen
-import com.github.sagiri_kawaii01.blenh.ui.screen.dashboard.DashboardViewModel
+import com.github.sagiri_kawaii01.blenh.ui.screen.detail.DetailScreen
 import com.github.sagiri_kawaii01.blenh.ui.theme.BlenhTheme
 import com.github.sagiri_kawaii01.blenh.ui.theme.Typography
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.launch
-import kotlinx.serialization.encodeToString
-import kotlinx.serialization.json.Json
 
 val tabItem = listOf(
     "收支统计" to ROUTE_DASHBOARD,
@@ -132,9 +117,10 @@ class MainActivity : ComponentActivity() {
                                     title = {
                                         Box(modifier = Modifier.fillMaxWidth(),
                                             contentAlignment = Alignment.Center) {
-                                            val text = when (navBackStackEntry?.destination?.route) {
+                                            val text = when (navBackStackEntry?.destination?.route?.substringBefore("?")) {
                                                 ROUTE_DASHBOARD -> "收支统计"
                                                 ROUTE_BILL_LIST -> "账单列表"
+                                                ROUTE_PAY_DETAIL -> "支付详情"
                                                 else -> navBackStackEntry?.destination?.route ?: "未知页面"
                                             }
                                             Text(text = text, style = Typography.titleMedium)
@@ -170,7 +156,15 @@ class MainActivity : ComponentActivity() {
                             ) {
                                 NavHost(navController = navController, startDestination = ROUTE_DASHBOARD) {
                                     composable(ROUTE_DASHBOARD) { DashboardScreen() }
-                                    composable(ROUTE_BILL_LIST) { BillListScreen() }
+                                    composable(ROUTE_BILL_LIST) {
+                                        BillListScreen()
+                                    }
+                                    composable(
+                                        route = "$ROUTE_PAY_DETAIL?id={id}",
+                                        arguments = listOf(navArgument("id") { defaultValue = -1 })
+                                    ) { backStackEntry  ->
+                                        DetailScreen(billId = backStackEntry.arguments!!.getInt("id"))
+                                    }
                                 }
                             }
                         }
@@ -179,13 +173,13 @@ class MainActivity : ComponentActivity() {
             }
 
         }
-        if (!isStartAccessibilityServiceEnable(appContext)) {
-            try {
-                openAccessibilityService(appContext)
-            } catch (e: Exception) {
-                Log.e("APP", e.toString())
-            }
-        }
+//        if (!isStartAccessibilityServiceEnable(appContext)) {
+//            try {
+//                openAccessibilityService(appContext)
+//            } catch (e: Exception) {
+//                Log.e("APP", e.toString())
+//            }
+//        }
     }
 
     private fun isStartAccessibilityServiceEnable(context: Context): Boolean {

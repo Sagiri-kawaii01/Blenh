@@ -2,6 +2,7 @@ package com.github.sagiri_kawaii01.blenh.ui.component
 
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -30,6 +31,8 @@ import com.github.sagiri_kawaii01.blenh.R
 import com.github.sagiri_kawaii01.blenh.model.PayType
 import com.github.sagiri_kawaii01.blenh.model.bean.BillBean
 import com.github.sagiri_kawaii01.blenh.model.bean.IconBean
+import com.github.sagiri_kawaii01.blenh.ui.local.LocalNavController
+import com.github.sagiri_kawaii01.blenh.ui.route.ROUTE_PAY_DETAIL
 import com.github.sagiri_kawaii01.blenh.ui.screen.billlist.BillRecord
 import com.github.sagiri_kawaii01.blenh.ui.theme.Gray20
 import com.github.sagiri_kawaii01.blenh.ui.theme.Typography
@@ -63,6 +66,7 @@ fun BillList(
     billList: List<BillRecord>,
     modifier: Modifier = Modifier
 ) {
+    val navController = LocalNavController.current
     DashCard(label = label, modifier) {
         LazyColumn {
             items(billList) { item ->
@@ -73,7 +77,10 @@ fun BillList(
                         label = item.label,
                         label2 = item.date,
                         label3 = item.time,
-                        clip = false
+                        clip = false,
+                        onClick = {
+                            navController.navigate("$ROUTE_PAY_DETAIL?id=${item.id}")
+                        }
                     ) {
                         Icon(
                             imageVector = IconBean.IconList[item.iconIdx],
@@ -95,6 +102,7 @@ fun ConsumeRecord(
     label2: String? = null,
     label3: String? = null,
     clip: Boolean = true,
+    onClick: (() -> Unit)? = null,
     icon: @Composable () -> Unit = {
         Image(
             painter = painterResource(id =
@@ -112,6 +120,13 @@ fun ConsumeRecord(
         modifier = Modifier
             .fillMaxWidth()
             .background(Color.White)
+            .run {
+                if (onClick == null) {
+                    this
+                } else this.clickable {
+                    onClick()
+                }
+            }
             .padding(vertical = 8.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {

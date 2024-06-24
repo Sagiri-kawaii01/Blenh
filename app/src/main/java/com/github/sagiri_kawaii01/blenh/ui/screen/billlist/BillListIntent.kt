@@ -8,4 +8,6 @@ sealed interface BillListIntent: MviIntent {
         val type: TimePeriodType,
         val search: String = ""
     ): BillListIntent
+
+    data object Init: BillListIntent
 }

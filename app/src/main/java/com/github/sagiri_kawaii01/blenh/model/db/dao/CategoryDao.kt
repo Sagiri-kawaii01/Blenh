@@ -14,4 +14,7 @@ interface CategoryDao {
 
     @Query("SELECT * FROM $CATEGORY_TABLE_NAME ORDER BY ${CategoryBean.SORT_COLUMN}")
     fun getCategoryList(): Flow<List<CategoryBean>>
+
+    @Query("SELECT * FROM $CATEGORY_TABLE_NAME WHERE ${CategoryBean.ID_COLUMN} = :id")
+    fun getById(id: Int): CategoryBean
 }

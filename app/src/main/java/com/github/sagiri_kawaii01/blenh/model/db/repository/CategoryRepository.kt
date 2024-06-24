@@ -10,4 +10,5 @@ class CategoryRepository @Inject constructor(
     private val categoryDao: CategoryDao
 ) {
     fun getCategoryList() = categoryDao.getCategoryList().flowOnIo()
+    fun getById(id: Int) = categoryDao.getById(id)
 }

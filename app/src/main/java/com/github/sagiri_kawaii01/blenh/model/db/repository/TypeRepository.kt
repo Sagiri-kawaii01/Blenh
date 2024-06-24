@@ -11,4 +11,5 @@ class TypeRepository @Inject constructor(
     fun getTypeList() = typeDao.getTypeList()
     fun getTypeFlow() = typeDao.getTypeFlow()
     fun getTypeList(categoryId: Int) = typeDao.getTypeList(categoryId).flowOnIo()
+    fun getById(id: Int) = typeDao.getById(id)
 }

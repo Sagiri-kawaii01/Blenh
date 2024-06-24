@@ -21,5 +21,7 @@ interface TypeDao {
     @Query("SELECT * FROM $TYPE_TABLE_NAME WHERE ${TypeBean.CATEGORY_ID_COLUMN} = :cateGoryId ORDER BY ${TypeBean.SORT_COLUMN}")
     fun getTypeList(cateGoryId: Int): Flow<List<TypeBean>>
 
+    @Query("SELECT * FROM $TYPE_TABLE_NAME WHERE ${TypeBean.ID_COLUMN} = :id")
+    fun getById(id: Int): TypeBean
 
 }

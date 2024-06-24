@@ -20,6 +20,8 @@ class BillRepository @Inject constructor(
     private val billDao: BillDao
 ) {
 
+    fun getById(id: Int) = billDao.getById(id)
+
     fun insert(billBean: BillBean) = billDao.insert(billBean)
 
     fun list(type: TimePeriodType): Flow<List<BillBean>> {

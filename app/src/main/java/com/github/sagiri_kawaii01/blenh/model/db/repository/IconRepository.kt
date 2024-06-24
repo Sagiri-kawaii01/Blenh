@@ -10,4 +10,5 @@ class IconRepository @Inject constructor(
     private val iconDao: IconDao
 ) {
     fun list() = iconDao.list().flowOnIo()
+    fun getById(id: Int) = iconDao.getById(id)
 }

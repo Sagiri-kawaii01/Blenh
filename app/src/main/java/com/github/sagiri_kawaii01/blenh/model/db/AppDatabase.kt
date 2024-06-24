@@ -6,6 +6,7 @@ import androidx.room.Room
 import androidx.room.RoomDatabase
 import androidx.room.migration.Migration
 import androidx.sqlite.db.SupportSQLiteDatabase
+import com.github.sagiri_kawaii01.blenh.BuildConfig
 import com.github.sagiri_kawaii01.blenh.model.bean.BillBean
 import com.github.sagiri_kawaii01.blenh.model.bean.CategoryBean
 import com.github.sagiri_kawaii01.blenh.model.bean.IconBean
@@ -69,10 +70,11 @@ abstract class AppDatabase: RoomDatabase() {
                 typeDao.insert(it)
             }
 
-            BillBean.TEST_DATA.forEach {
-                billDao.insert(it)
+            if (BuildConfig.DEBUG) {
+                BillBean.TEST_DATA.forEach {
+                    billDao.insert(it)
+                }
             }
-
         }
     }
 

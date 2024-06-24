@@ -38,7 +38,7 @@ fun BillListScreen(
     viewModel: BillListViewModel = hiltViewModel()
 ) {
     val uiState by viewModel.viewState.collectAsState()
-    val dispatcher = viewModel.getDispatcher(startWith = BillListIntent.GetBillList(type = TimePeriodType.Week))
+    val dispatcher = viewModel.getDispatcher(startWith = BillListIntent.Init)
 
     when (uiState.billListDataState) {
         is BillListDataState.Success -> {

@@ -110,4 +110,7 @@ interface BillDao {
     """)
     fun chartsYear(): Flow<List<BillChart>>
 
+    @Query("SELECT * FROM $BILL_TABLE_NAME WHERE id = :id")
+    fun getById(id: Int): BillBean
+
 }
