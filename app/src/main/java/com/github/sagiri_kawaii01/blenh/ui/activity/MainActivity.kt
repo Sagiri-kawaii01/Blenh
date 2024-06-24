@@ -45,12 +45,16 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
+import com.github.sagiri_kawaii01.blenh.BuildConfig
 import com.github.sagiri_kawaii01.blenh.appContext
 import com.github.sagiri_kawaii01.blenh.base.AccessibilityService
 import com.github.sagiri_kawaii01.blenh.ui.local.LocalNavController
+import com.github.sagiri_kawaii01.blenh.ui.route.ROUTE_ADD_BILL
 import com.github.sagiri_kawaii01.blenh.ui.route.ROUTE_BILL_LIST
 import com.github.sagiri_kawaii01.blenh.ui.route.ROUTE_DASHBOARD
+import com.github.sagiri_kawaii01.blenh.ui.route.ROUTE_EDIT_BILL
 import com.github.sagiri_kawaii01.blenh.ui.route.ROUTE_PAY_DETAIL
+import com.github.sagiri_kawaii01.blenh.ui.screen.edit.EditScreen
 import com.github.sagiri_kawaii01.blenh.ui.screen.billlist.BillListScreen
 import com.github.sagiri_kawaii01.blenh.ui.screen.dashboard.DashboardScreen
 import com.github.sagiri_kawaii01.blenh.ui.screen.detail.DetailScreen
@@ -72,7 +76,7 @@ class MainActivity : ComponentActivity() {
     @OptIn(ExperimentalMaterial3Api::class)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        if (!Settings.canDrawOverlays(this)) {
+        if (!Settings.canDrawOverlays(this) && BuildConfig.ENABLE_ACCESSIBILITY) {
             val intent = Intent(Settings.ACTION_MANAGE_OVERLAY_PERMISSION, Uri.parse("package:$packageName"))
             startActivity(intent)
         }
@@ -121,6 +125,8 @@ class MainActivity : ComponentActivity() {
                                                 ROUTE_DASHBOARD -> "收支统计"
                                                 ROUTE_BILL_LIST -> "账单列表"
                                                 ROUTE_PAY_DETAIL -> "支付详情"
+                                                ROUTE_ADD_BILL -> "添加账单"
+                                                ROUTE_EDIT_BILL -> "编辑账单"
                                                 else -> navBackStackEntry?.destination?.route ?: "未知页面"
                                             }
                                             Text(text = text, style = Typography.titleMedium)
@@ -165,6 +171,15 @@ class MainActivity : ComponentActivity() {
                                     ) { backStackEntry  ->
                                         DetailScreen(billId = backStackEntry.arguments!!.getInt("id"))
                                     }
+                                    composable(ROUTE_ADD_BILL) {
+                                        EditScreen()
+                                    }
+                                    composable(
+                                        route = "$ROUTE_EDIT_BILL?id={id}",
+                                        arguments = listOf(navArgument("id") { defaultValue = -1} )
+                                    ) { backStackEntry ->
+                                        EditScreen(billId = backStackEntry.arguments!!.getInt("id"))
+                                    }
                                 }
                             }
                         }
@@ -173,13 +188,15 @@ class MainActivity : ComponentActivity() {
             }
 
         }
-//        if (!isStartAccessibilityServiceEnable(appContext)) {
-//            try {
-//                openAccessibilityService(appContext)
-//            } catch (e: Exception) {
-//                Log.e("APP", e.toString())
-//            }
-//        }
+        if (BuildConfig.ENABLE_ACCESSIBILITY) {
+            if (!isStartAccessibilityServiceEnable(appContext)) {
+                try {
+                    openAccessibilityService(appContext)
+                } catch (e: Exception) {
+                    Log.e("APP", e.toString())
+                }
+            }
+        }
     }
 
     private fun isStartAccessibilityServiceEnable(context: Context): Boolean {
