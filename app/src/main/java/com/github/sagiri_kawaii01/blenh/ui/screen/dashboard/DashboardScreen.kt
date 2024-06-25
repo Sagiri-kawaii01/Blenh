@@ -53,8 +53,6 @@ fun DashboardScreen(
     val uiState by viewModel.viewState.collectAsState()
     val dispatcher = viewModel.getDispatcher(startWith = DashboardIntent.GetBillList(TimePeriodType.Week))
 
-    val today = today()
-
     when (uiState.dashboardListState) {
         is DashboardListState.Success -> {
             val data = uiState.dashboardListState as DashboardListState.Success
@@ -144,7 +142,9 @@ fun DashboardScreen(
                         billList = data.billList,
                         typeNameMap = data.typeNameMap,
                         modifier = Modifier.background(Color.White)
-                    )
+                    ) { bill ->
+                        dispatcher.invoke(DashboardIntent.Delete(bill.id))
+                    }
                 }
             }
         }

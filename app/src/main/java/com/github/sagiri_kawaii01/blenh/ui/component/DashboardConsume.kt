@@ -72,30 +72,46 @@ fun DashConsume(
     label: String,
     billList: List<BillBean>,
     typeNameMap: Map<Int, String>,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    onDelete: (BillBean) -> Unit
 ) {
     val navController = LocalNavController.current
+    var showDialog by remember { mutableStateOf(false) }
+    var selectIndex by remember { mutableIntStateOf(0) }
 
     DashCard(label = label, modifier) {
         LazyColumn {
-            items(billList) {
+            itemsIndexed(billList) { index, item ->
                 ConsumeRecord(
-                    type = PayType.fromId(it.payType),
-                    amount = it.money,
-                    label = typeNameMap[it.typeId] ?: "其他",
-                    label2 = formatDate(it.month, it.day),
-                    label3 = it.time,
+                    type = PayType.fromId(item.payType),
+                    amount = item.money,
+                    label = typeNameMap[item.typeId] ?: "其他",
+                    label2 = formatDate(item.month, item.day),
+                    label3 = item.time,
                     onClick = {
-                        navController.navigate("$ROUTE_PAY_DETAIL?id=${it.id}")
+                        navController.navigate("$ROUTE_PAY_DETAIL?id=${item.id}")
                     },
                     onEdit = {
-                        navController.navigate("$ROUTE_EDIT_BILL?id=${it.id}")
+                        navController.navigate("$ROUTE_EDIT_BILL?id=${item.id}")
                     },
                     onDelete = {
-
+                        selectIndex = index
+                        showDialog = true
                     }
                 )
             }
+        }
+    }
+
+    if (showDialog) {
+        DeleteConfirmDialog(
+            data = billList[selectIndex],
+            text = "${typeNameMap[billList[selectIndex].typeId] ?: "其他"} ￥${billList[selectIndex].money}",
+            onDismiss = {
+                showDialog = false
+            }
+        ) {
+            onDelete(it)
         }
     }
     

@@ -17,6 +17,7 @@ import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.emptyFlow
 import kotlinx.coroutines.flow.filterIsInstance
 import kotlinx.coroutines.flow.filterNot
 import kotlinx.coroutines.flow.flatMapLatest
@@ -48,7 +49,7 @@ class DashboardViewModel @Inject constructor(
         val initialVs = DashboardState.initial()
 
         viewState = merge(
-            intentSharedFlow.filterIsInstance<DashboardIntent.GetBillList>(),
+            intentSharedFlow.filterIsInstance<DashboardIntent.GetBillList>().take(1),
             intentSharedFlow.filterNot { it is DashboardIntent.GetBillList }
         )
             .shareWhileSubscribed()
@@ -66,24 +67,33 @@ class DashboardViewModel @Inject constructor(
 
     @OptIn(ExperimentalCoroutinesApi::class)
     private fun SharedFlow<DashboardIntent>.toPartialStateChangeFlow(): Flow<DashboardStateChange> {
-        return filterIsInstance<DashboardIntent.GetBillList>()
-            .flatMapLatest { intent ->
-            combine(
-                billRepository.list(intent.type),
-                billRepository.expend(intent.type),
-                billRepository.charts(intent.type)
-            ) { bills, expend, charts ->
-                Log.d("Dashboard", "Combine received: bills=$bills, expend=$expend, charts=$charts")
-                DashboardStateChange.BillList.Success(
-                    intent.type,
-                    expend,
-                    0.0 to 0.0,
-                    bills,
-                    charts,
-                    typeNameMap
-                )
-            }
-        }.startWith(DashboardStateChange.BillList.Loading)
+        return merge(
+            filterIsInstance<DashboardIntent.GetBillList>()
+                .flatMapLatest { intent ->
+                    combine(
+                        billRepository.list(intent.type),
+                        billRepository.expend(intent.type),
+                        billRepository.charts(intent.type)
+                    ) { bills, expend, charts ->
+                        DashboardStateChange.BillList.Success(
+                            intent.type,
+                            expend,
+                            0.0 to 0.0,
+                            bills,
+                            charts,
+                            typeNameMap
+                        )
+                    }
+                }.startWith(DashboardStateChange.BillList.Loading),
+
+            filterIsInstance<DashboardIntent.Delete>()
+                .flatMapLatest { intent ->
+                    viewModelScope.launch(Dispatchers.IO) {
+                        billRepository.deleteById(intent.id)
+                    }
+                    emptyFlow()
+                }
+        )
     }
 
 
