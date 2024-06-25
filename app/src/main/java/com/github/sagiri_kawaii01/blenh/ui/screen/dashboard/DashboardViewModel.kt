@@ -49,7 +49,7 @@ class DashboardViewModel @Inject constructor(
         val initialVs = DashboardState.initial()
 
         viewState = merge(
-            intentSharedFlow.filterIsInstance<DashboardIntent.GetBillList>().take(1),
+            intentSharedFlow.filterIsInstance<DashboardIntent.GetBillList>(),
             intentSharedFlow.filterNot { it is DashboardIntent.GetBillList }
         )
             .shareWhileSubscribed()
