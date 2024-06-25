@@ -89,7 +89,9 @@ fun BillListScreen(
                         label = "消费记录",
                         billList = data.billList,
                         modifier = Modifier.background(Color.White)
-                    )
+                    ) { bill ->
+                        dispatcher.invoke(BillListIntent.DeleteBill(bill.id))
+                    }
 
                 }
             }

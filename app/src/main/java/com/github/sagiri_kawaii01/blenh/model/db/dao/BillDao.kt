@@ -1,6 +1,7 @@
 package com.github.sagiri_kawaii01.blenh.model.db.dao
 
 import androidx.room.Dao
+import androidx.room.Delete
 import androidx.room.Insert
 import androidx.room.Query
 import com.github.sagiri_kawaii01.blenh.model.bean.BILL_TABLE_NAME
@@ -10,6 +11,10 @@ import kotlinx.coroutines.flow.Flow
 
 @Dao
 interface BillDao {
+
+    @Query("DELETE FROM $BILL_TABLE_NAME WHERE id = :id")
+    fun deleteById(id: Int)
+
     @Insert
     fun insert(bill: BillBean)
 

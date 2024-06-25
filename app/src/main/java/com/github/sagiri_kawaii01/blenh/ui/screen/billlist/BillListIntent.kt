@@ -9,5 +9,9 @@ sealed interface BillListIntent: MviIntent {
         val search: String = ""
     ): BillListIntent
 
+    data class DeleteBill(
+        val id: Int
+    ): BillListIntent
+
     data object Init: BillListIntent
 }

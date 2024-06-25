@@ -99,6 +99,14 @@ class BillListViewModel @Inject constructor(
                     }
                 }.startWith(BillListStateChange.BillList.Loading),
 
+            filterIsInstance<BillListIntent.DeleteBill>()
+                .flatMapLatest { intent ->
+                    viewModelScope.launch(Dispatchers.IO) {
+                        billRepository.deleteById(intent.id)
+                    }
+                    emptyFlow()
+                },
+
             filterIsInstance<BillListIntent.Init>()
                 .flatMapLatest {
                     processIntent(BillListIntent.GetBillList(TimePeriodType.Week))

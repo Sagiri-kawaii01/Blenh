@@ -20,6 +20,8 @@ class BillRepository @Inject constructor(
     private val billDao: BillDao
 ) {
 
+    fun deleteById(id: Int) = billDao.deleteById(id)
+
     fun getById(id: Int) = billDao.getById(id)
 
     fun insert(billBean: BillBean) = billDao.insert(billBean)

@@ -33,6 +33,7 @@ import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.key
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
@@ -97,20 +98,24 @@ fun DashConsume(
             }
         }
     }
+    
 }
 
 @Composable
 fun BillList(
     label: String,
     billList: List<BillRecord>,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    onDelete: (BillRecord) -> Unit,
 ) {
 
     val navController = LocalNavController.current
+    var showDialog by remember { mutableStateOf(false) }
+    var selectIndex by remember { mutableIntStateOf(0) }
 
     DashCard(label = label, modifier) {
         LazyColumn {
-            items(billList) { item ->
+            itemsIndexed(billList) { index, item ->
                 key(item.id) {
                     ConsumeRecord(
                         type = PayType.fromId(item.payType),
@@ -126,7 +131,8 @@ fun BillList(
                             navController.navigate("$ROUTE_EDIT_BILL?id=${item.id}")
                         },
                         onDelete = {
-
+                            selectIndex = index
+                            showDialog = true
                         }
                     ) {
                         Icon(
@@ -137,6 +143,18 @@ fun BillList(
                     }
                 }
             }
+        }
+    }
+    
+    if (showDialog) {
+        DeleteConfirmDialog(
+            data = billList[selectIndex],
+            text = "${billList[selectIndex].label} ￥${billList[selectIndex].money}",
+            onDismiss = {
+                showDialog = false
+            }
+        ) {
+            onDelete(it)
         }
     }
 }
@@ -181,18 +199,37 @@ fun ConsumeRecord(
                 detectHorizontalDragGestures(
                     onDragEnd = {
                         scope.launch {
-                            if (!showButton && offsetX.value < -maxOffset.x.toPx() / 4) {
-                                offsetX.animateTo(-maxOffset.x.toPx(), animationSpec = tween(300))
-                                showButton = true
-                            } else if (showButton && offsetX.value > - 3 * maxOffset.x.toPx() / 4) {
-                                offsetX.animateTo(0f, animationSpec = tween(300))
-                                showButton = false
+                            if (!showButton) {
+                                if (offsetX.value < -maxOffset.x.toPx() / 4) {
+                                    offsetX.animateTo(
+                                        -maxOffset.x.toPx(),
+                                        animationSpec = tween(300)
+                                    )
+                                    showButton = true
+                                } else {
+                                    offsetX.animateTo(0f, animationSpec = tween(300))
+                                }
+                            } else {
+                                if (offsetX.value > -3 * maxOffset.x.toPx() / 4) {
+                                    offsetX.animateTo(0f, animationSpec = tween(300))
+                                    showButton = false
+                                } else {
+                                    offsetX.animateTo(
+                                        -maxOffset.x.toPx(),
+                                        animationSpec = tween(300)
+                                    )
+                                }
                             }
                         }
                     },
                     onHorizontalDrag = { _, dragAmount ->
                         scope.launch {
-                            offsetX.snapTo((offsetX.value + dragAmount).coerceIn(-maxOffset.x.toPx(), 0f))
+                            offsetX.snapTo(
+                                (offsetX.value + dragAmount).coerceIn(
+                                    -maxOffset.x.toPx(),
+                                    0f
+                                )
+                            )
                         }
                     }
                 )

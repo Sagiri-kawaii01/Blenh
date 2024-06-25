@@ -17,6 +17,15 @@ interface BillListStateChange {
                         )
                     )
                 }
+
+                is Delete -> {
+                    state.copy(
+                        billListDataState = (state.billListDataState as BillListDataState.Success).copy(
+                            billList = (state.billListDataState as BillListDataState.Success).billList.filter { it.id != id }
+                        )
+                    )
+                }
+
                 Loading -> {
                     state.copy(loadingDialog = true)
                 }
@@ -26,6 +35,10 @@ interface BillListStateChange {
         data class Success(
             val type: TimePeriodType,
             val billList: List<BillRecord>
+        ): BillList
+
+        data class Delete(
+            val id: Int
         ): BillList
 
         data object Loading: BillList
