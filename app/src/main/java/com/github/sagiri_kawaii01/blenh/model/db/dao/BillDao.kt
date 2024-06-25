@@ -4,6 +4,7 @@ import androidx.room.Dao
 import androidx.room.Delete
 import androidx.room.Insert
 import androidx.room.Query
+import androidx.room.Update
 import com.github.sagiri_kawaii01.blenh.model.bean.BILL_TABLE_NAME
 import com.github.sagiri_kawaii01.blenh.model.bean.BillBean
 import com.github.sagiri_kawaii01.blenh.model.vo.BillChart
@@ -14,6 +15,9 @@ interface BillDao {
 
     @Query("DELETE FROM $BILL_TABLE_NAME WHERE id = :id")
     fun deleteById(id: Int)
+
+    @Update(entity = BillBean::class)
+    fun update(bill: BillBean)
 
     @Insert
     fun insert(bill: BillBean)
