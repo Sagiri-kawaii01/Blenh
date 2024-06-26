@@ -1,11 +1,12 @@
 package com.github.sagiri_kawaii01.blenh.model
 
 enum class PayType(
-    val id: Int
+    val id: Int,
+    val nameZh: String
 ) {
-    Wechat(1),
-    AliPay(2),
-    Rmb(3)
+    Wechat(1, "微信支付"),
+    AliPay(2, "支付宝"),
+    Rmb(3, "数字人民币")
 
     ;
 

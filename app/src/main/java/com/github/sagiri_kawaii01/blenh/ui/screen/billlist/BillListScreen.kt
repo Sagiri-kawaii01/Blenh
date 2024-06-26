@@ -13,8 +13,12 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Add
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.FilledIconButton
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButtonDefaults
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
@@ -34,7 +38,10 @@ import com.github.sagiri_kawaii01.blenh.model.bean.IconBean
 import com.github.sagiri_kawaii01.blenh.ui.component.BillList
 import com.github.sagiri_kawaii01.blenh.ui.component.SearchBar
 import com.github.sagiri_kawaii01.blenh.ui.component.TimePeriodButton
+import com.github.sagiri_kawaii01.blenh.ui.local.LocalNavController
+import com.github.sagiri_kawaii01.blenh.ui.route.ROUTE_ADD_BILL
 import com.github.sagiri_kawaii01.blenh.ui.screen.dashboard.DashboardIntent
+import com.github.sagiri_kawaii01.blenh.ui.theme.Gray20
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -44,6 +51,7 @@ fun BillListScreen(
     val uiState by viewModel.viewState.collectAsState()
     val dispatcher = viewModel.getDispatcher(startWith = BillListIntent.Init)
     val focusManager = LocalFocusManager.current
+    val navController = LocalNavController.current
 
     when (uiState.billListDataState) {
         is BillListDataState.Success -> {
@@ -53,6 +61,18 @@ fun BillListScreen(
                 modifier = Modifier
                     .fillMaxSize()
                     .padding(horizontal = 16.dp),
+                floatingActionButton = {
+                    FilledIconButton(
+                        onClick = {
+                            navController.navigate(ROUTE_ADD_BILL)
+                        },
+                        colors = IconButtonDefaults.filledIconButtonColors().copy(
+                            containerColor = Gray20
+                        )
+                    ) {
+                        Icon(imageVector = Icons.Filled.Add, contentDescription = "Add")
+                    }
+                },
                 topBar = {
                     Row(
                         modifier = Modifier

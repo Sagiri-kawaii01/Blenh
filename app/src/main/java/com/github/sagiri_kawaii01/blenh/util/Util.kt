@@ -23,6 +23,12 @@ fun LocalDate.format(): String {
     return this.format(DATE_PATTERN)
 }
 
+fun String.orNull(): String? {
+    return this.ifEmpty {
+        null
+    }
+}
+
 fun LocalTime.format(): String {
     return this.format(TIME_PATTERN)
 }

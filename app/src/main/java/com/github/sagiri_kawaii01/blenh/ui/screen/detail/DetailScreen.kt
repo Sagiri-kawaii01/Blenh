@@ -73,12 +73,7 @@ fun DetailScreen(
                     "支付方式" to data.bill.payMethod,
                     "备注" to data.bill.remark,
                     "订单号" to data.bill.order,
-                    "支付渠道" to when (data.bill.payType) {
-                        PayType.AliPay.id -> "支付宝"
-                        PayType.Wechat.id -> "微信"
-                        PayType.Rmb.id -> "数字人民币"
-                        else -> ""
-                    }
+                    "支付渠道" to PayType.fromId(data.bill.payType).nameZh
                 )
 
                 textData.filter { !it.second.isNullOrBlank() }.forEach {

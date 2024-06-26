@@ -1,18 +1,27 @@
 package com.github.sagiri_kawaii01.blenh.ui.screen.edit
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.KeyboardActions
+import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableDoubleStateOf
@@ -22,13 +31,29 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.viewModelScope
 import com.github.sagiri_kawaii01.blenh.base.mvi.getDispatcher
+import com.github.sagiri_kawaii01.blenh.model.PayType
 import com.github.sagiri_kawaii01.blenh.model.bean.BillBean
+import com.github.sagiri_kawaii01.blenh.ui.component.CalendarDialog
 import com.github.sagiri_kawaii01.blenh.ui.component.DashCard
+import com.github.sagiri_kawaii01.blenh.ui.component.DropdownOutlinedTextField
+import com.github.sagiri_kawaii01.blenh.ui.component.EditTextField
 import com.github.sagiri_kawaii01.blenh.ui.local.LocalNavController
 import com.github.sagiri_kawaii01.blenh.ui.theme.Gray20
+import com.github.sagiri_kawaii01.blenh.util.formatDate
+import com.github.sagiri_kawaii01.blenh.util.orNull
+import com.github.sagiri_kawaii01.blenh.util.today
+import io.github.boguszpawlowski.composecalendar.SelectableCalendar
+import io.github.boguszpawlowski.composecalendar.StaticCalendar
+import io.github.boguszpawlowski.composecalendar.rememberSelectableCalendarState
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import java.time.LocalDate
 
 @Composable
 fun EditScreen(
@@ -38,12 +63,13 @@ fun EditScreen(
 
     val navController = LocalNavController.current
     val uiState by viewModel.viewState.collectAsState()
+    val today = today()
     val dispatcher = viewModel.getDispatcher(startWith = EditIntent.Init)
     val uiEvent by viewModel.singleEvent.collectAsState(initial = null)
     var typeId by remember { mutableIntStateOf(0) }
-    var year by remember { mutableIntStateOf(0) }
-    var month by remember { mutableIntStateOf(0) }
-    var day by remember { mutableIntStateOf(0) }
+    var year by remember { mutableIntStateOf(today.year) }
+    var month by remember { mutableIntStateOf(today.monthValue) }
+    var day by remember { mutableIntStateOf(today.dayOfMonth) }
     var time by remember { mutableStateOf("") }
     var money by remember { mutableDoubleStateOf(0.0) }
     var payType by remember { mutableIntStateOf(1) }
@@ -51,7 +77,29 @@ fun EditScreen(
     var target by remember { mutableStateOf("") }
     var order by remember { mutableStateOf("") }
     var remark by remember { mutableStateOf("") }
+    var isDateDialogOpen by remember { mutableStateOf(false) }
+    var selectedPayType by remember { mutableStateOf(PayType.Wechat.nameZh) }
+    val payTypeEnum = PayType.entries.map { it.nameZh }
 
+    if (billId != null) {
+        LaunchedEffect(Unit) {
+            viewModel.viewModelScope.launch(Dispatchers.IO) {
+                val bill = viewModel.getBill(billId)
+                typeId = bill.typeId
+                year = bill.year
+                month = bill.month
+                day = bill.day
+                time = bill.time
+                money = bill.money
+                payType = bill.payType
+                payMethod = bill.payMethod ?: ""
+                target = bill.target ?: ""
+                order = bill.order ?: ""
+                remark = bill.remark ?: ""
+                selectedPayType = PayType.fromId(bill.payType).nameZh
+            }
+        }
+    }
 
     if (uiEvent is EditEvent.SaveSuccess) {
         navController.popBackStack()
@@ -68,22 +116,57 @@ fun EditScreen(
             modifier = Modifier.background(Color.White)
         ) {
 
+
+            OutlinedTextField(
+                value = "$year-${formatDate(month, day)}",
+                label = { Text(text = "日期") },
+                onValueChange = {},
+                readOnly = true,
+                enabled = false,
+                colors = OutlinedTextFieldDefaults.colors(
+                    disabledBorderColor = OutlinedTextFieldDefaults.colors().unfocusedIndicatorColor,
+                    disabledContainerColor = OutlinedTextFieldDefaults.colors().unfocusedContainerColor,
+                    disabledTextColor = OutlinedTextFieldDefaults.colors().unfocusedTextColor,
+                    disabledLabelColor = OutlinedTextFieldDefaults.colors().unfocusedLabelColor,
+                    disabledPlaceholderColor = OutlinedTextFieldDefaults.colors().unfocusedPlaceholderColor
+                ),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .clickable {
+                        isDateDialogOpen = true
+                    }
+            )
+
+            CalendarDialog(
+                isDialogOpen = isDateDialogOpen,
+                initialSelection = LocalDate.of(year, month, day),
+                onDismiss = { isDateDialogOpen = false }
+            ) { y, m, d ->
+                year = y
+                month = m
+                day = d
+            }
+
+            // todo TimePicker & check
+
             EditTextField(
                 value = money.toString(),
                 placeholder = "金额",
+                numberInput = true,
                 onValueChange = { money = it.toDouble() }
             )
 
-            EditTextField(
-                value = payMethod,
-                placeholder = "支付方式",
-                onValueChange = { payMethod = it }
-            )
+            DropdownOutlinedTextField(
+                options = payTypeEnum,
+                label = "支付方式",
+                selectedOption = selectedPayType) {
+                selectedPayType = payTypeEnum[it]
+            }
 
             EditTextField(
                 value = target,
                 placeholder = "收款方",
-                onValueChange = { target = it }
+                onValueChange = { target = it },
             )
 
             EditTextField(
@@ -116,10 +199,10 @@ fun EditScreen(
                             time = time,
                             money = money,
                             payType = payType,
-                            payMethod = payMethod,
-                            target = target,
-                            remark = remark,
-                            order = order
+                            payMethod = payMethod.orNull(),
+                            target = target.orNull(),
+                            remark = remark.orNull(),
+                            order = order.orNull()
                         )
                     ))
                 } else {
@@ -133,10 +216,10 @@ fun EditScreen(
                             time = time,
                             money = money,
                             payType = payType,
-                            payMethod = payMethod,
-                            target = target,
-                            remark = remark,
-                            order = order
+                            payMethod = payMethod.orNull(),
+                            target = target.orNull(),
+                            remark = remark.orNull(),
+                            order = order.orNull()
                         )
                     ))
                 }
@@ -151,27 +234,4 @@ fun EditScreen(
             Text(text = "保存")
         }
     }
-}
-
-@Composable
-fun EditTextField(
-    value: String,
-    placeholder: String,
-    onValueChange: (String) -> Unit
-) {
-    OutlinedTextField(
-        value = value,
-        label = { Text(text = placeholder) },
-        onValueChange = onValueChange,
-        modifier = Modifier.fillMaxWidth()
-    )
-}
-
-@Composable
-fun Selector(
-    items: List<String>,
-    label: String,
-    onSelect: (Int) -> Unit
-) {
-
 }

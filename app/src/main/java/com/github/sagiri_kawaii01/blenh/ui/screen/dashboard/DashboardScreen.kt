@@ -10,6 +10,12 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyRow
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Add
+import androidx.compose.material3.FilledIconButton
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.IconButtonDefaults
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
@@ -25,6 +31,9 @@ import com.github.sagiri_kawaii01.blenh.ui.component.DashConsume
 import com.github.sagiri_kawaii01.blenh.ui.component.IOCard
 import com.github.sagiri_kawaii01.blenh.ui.component.TendencyCard
 import com.github.sagiri_kawaii01.blenh.ui.component.TimePeriodButton
+import com.github.sagiri_kawaii01.blenh.ui.local.LocalNavController
+import com.github.sagiri_kawaii01.blenh.ui.route.ROUTE_ADD_BILL
+import com.github.sagiri_kawaii01.blenh.ui.theme.Gray20
 import com.github.sagiri_kawaii01.blenh.util.today
 import java.time.LocalDate
 
@@ -34,6 +43,7 @@ fun DashboardScreen(
 ) {
     val uiState by viewModel.viewState.collectAsState()
     val dispatcher = viewModel.getDispatcher(startWith = DashboardIntent.GetBillList(TimePeriodType.Week))
+    val navController = LocalNavController.current
 
     when (uiState.dashboardListState) {
         is DashboardListState.Success -> {
@@ -42,6 +52,18 @@ fun DashboardScreen(
                 modifier = Modifier
                     .fillMaxSize()
                     .padding(horizontal = 16.dp),
+                floatingActionButton = {
+                    FilledIconButton(
+                        onClick = {
+                            navController.navigate(ROUTE_ADD_BILL)
+                        },
+                        colors = IconButtonDefaults.filledIconButtonColors().copy(
+                            containerColor = Gray20
+                        )
+                    ) {
+                        Icon(imageVector = Icons.Filled.Add, contentDescription = "Add")
+                    }
+                },
                 topBar = {
                     Row(
                         modifier = Modifier
