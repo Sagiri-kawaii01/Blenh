@@ -16,8 +16,6 @@ data class BillListState(
 }
 
 sealed class BillListDataState {
-    var loading: Boolean = false
-
     data object Init: BillListDataState()
     data class Success(
         val type: TimePeriodType,

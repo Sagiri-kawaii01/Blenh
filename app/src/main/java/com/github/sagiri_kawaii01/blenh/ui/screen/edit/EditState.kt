@@ -14,21 +14,19 @@ data class EditState(
         fun initial() = EditState(
             loadingDialog = false,
             savingDialog = false,
-            dataState = EditDataState.Init
+            dataState = EditDataState.Loading
         )
     }
 
-    sealed class EditDataState {
-        var loading: Boolean = false
-
+    sealed interface EditDataState {
         data class CategoryListSuccess(
             val categoryList: List<CategoryBean>,
             val typeList: List<TypeBean>,
             val selectedCategoryId: Int,
             val selectedTypeId: Int,
             val editBill: BillBean? = null
-        ): EditDataState()
+        ): EditDataState
 
-        data object Init: EditDataState()
+        data object Loading: EditDataState
     }
 }

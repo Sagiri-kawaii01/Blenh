@@ -16,10 +16,6 @@ internal sealed interface DashboardStateChange {
     sealed interface BillList: DashboardStateChange {
         override fun reduce(oldState: DashboardState): DashboardState {
             return when (this) {
-                Loading -> oldState.copy(
-                    dashboardListState = oldState.dashboardListState.apply { loading = true }
-                )
-
                 is Success -> oldState.copy(
                     dashboardListState = DashboardListState.Success(
                         type = type,
@@ -28,10 +24,8 @@ internal sealed interface DashboardStateChange {
                         billList = billList,
                         charts = charts,
                         typeNameMap = typeNameMap
-                    ).apply {
-                        loading = true
-                        Log.d("Dashboard", type.name)
-                    }
+                    ),
+                    loadingDialog = false
                 )
             }
         }
@@ -45,6 +39,5 @@ internal sealed interface DashboardStateChange {
             val typeNameMap: Map<Int, String> = emptyMap()
         ): BillList
 
-        data object Loading: BillList
     }
 }

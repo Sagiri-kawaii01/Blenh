@@ -8,10 +8,10 @@ import com.github.sagiri_kawaii01.blenh.base.mvi.MviSingleEvent
 import com.github.sagiri_kawaii01.blenh.model.bean.CategoryBean
 import com.github.sagiri_kawaii01.blenh.model.bean.IconBean
 import com.github.sagiri_kawaii01.blenh.model.bean.TypeBean
-import com.github.sagiri_kawaii01.blenh.model.db.repository.BillRepository
-import com.github.sagiri_kawaii01.blenh.model.db.repository.CategoryRepository
-import com.github.sagiri_kawaii01.blenh.model.db.repository.IconRepository
-import com.github.sagiri_kawaii01.blenh.model.db.repository.TypeRepository
+import com.github.sagiri_kawaii01.blenh.model.repository.BillRepository
+import com.github.sagiri_kawaii01.blenh.model.repository.CategoryRepository
+import com.github.sagiri_kawaii01.blenh.model.repository.IconRepository
+import com.github.sagiri_kawaii01.blenh.model.repository.TypeRepository
 import com.github.sagiri_kawaii01.blenh.ui.screen.dashboard.DashboardIntent
 import com.github.sagiri_kawaii01.blenh.ui.screen.dashboard.DashboardState
 import com.github.sagiri_kawaii01.blenh.util.flowOnIo

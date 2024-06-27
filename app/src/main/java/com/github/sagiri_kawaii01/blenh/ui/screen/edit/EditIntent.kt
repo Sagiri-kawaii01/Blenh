@@ -16,4 +16,8 @@ sealed interface EditIntent: MviIntent {
     data class Update(
         val billBean: BillBean
     ): EditIntent
+
+    data class GetTypes(
+        val categoryId: Int
+    ): EditIntent
 }

@@ -6,12 +6,13 @@ import com.github.sagiri_kawaii01.blenh.base.mvi.AbstractMviViewModel
 import com.github.sagiri_kawaii01.blenh.base.mvi.MviSingleEvent
 import com.github.sagiri_kawaii01.blenh.model.TimePeriodType
 import com.github.sagiri_kawaii01.blenh.model.bean.BillBean
-import com.github.sagiri_kawaii01.blenh.model.db.repository.BillRepository
-import com.github.sagiri_kawaii01.blenh.model.db.repository.TypeRepository
+import com.github.sagiri_kawaii01.blenh.model.repository.BillRepository
+import com.github.sagiri_kawaii01.blenh.model.repository.TypeRepository
 import com.github.sagiri_kawaii01.blenh.util.startWith
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.SharingStarted
@@ -48,10 +49,7 @@ class DashboardViewModel @Inject constructor(
 
         val initialVs = DashboardState.initial()
 
-        viewState = merge(
-            intentSharedFlow.filterIsInstance<DashboardIntent.GetBillList>(),
-            intentSharedFlow.filterNot { it is DashboardIntent.GetBillList }
-        )
+        viewState = intentSharedFlow
             .shareWhileSubscribed()
             .debugLog("Dashboard")
             .toPartialStateChangeFlow()
@@ -75,6 +73,7 @@ class DashboardViewModel @Inject constructor(
                         billRepository.expend(intent.type),
                         billRepository.charts(intent.type)
                     ) { bills, expend, charts ->
+                        delay(1000)
                         DashboardStateChange.BillList.Success(
                             intent.type,
                             expend,
@@ -84,7 +83,7 @@ class DashboardViewModel @Inject constructor(
                             typeNameMap
                         )
                     }
-                }.startWith(DashboardStateChange.BillList.Loading),
+                }.startWith(DashboardStateChange.LoadingDialog),
 
             filterIsInstance<DashboardIntent.Delete>()
                 .flatMapLatest { intent ->

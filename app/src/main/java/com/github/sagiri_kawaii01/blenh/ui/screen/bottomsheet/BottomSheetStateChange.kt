@@ -20,7 +20,8 @@ internal sealed interface BottomSheetStateChange {
                         selectingType = false,
                         typePage = 0,
                         iconItems = iconItems
-                    )
+                    ),
+                    loadingDialog = false
                 )
                 is Init -> {
                     oldState.copy(
@@ -30,9 +31,8 @@ internal sealed interface BottomSheetStateChange {
                             selectedTypeId = selectTypeId,
                             selectedCategoryId = selectedCategoryId,
                             iconItems = iconItems
-                        ).apply {
-                            loading = false
-                        }
+                        ),
+                        loadingDialog = false
                     )
                 }
                 is GetType -> {
@@ -44,35 +44,40 @@ internal sealed interface BottomSheetStateChange {
                             typePage = 0,
                             selectedTypeId = iconItems[0].second,
                             selectedCategoryId = categoryId
-                        )
+                        ),
+                        loadingDialog = false
                     )
                 }
                 is CategoryPage -> {
                     oldState.copy(
                         dataState = (oldState.dataState as BottomSheetDataState.Success).copy(
                             categoryPage = page
-                        )
+                        ),
+                        loadingDialog = false
                     )
                 }
                 is TypePage -> {
                     oldState.copy(
                         dataState = (oldState.dataState as BottomSheetDataState.Success).copy(
                             typePage = page
-                        )
+                        ),
+                        loadingDialog = false
                     )
                 }
                 is SelectType -> {
                     oldState.copy(
                         dataState = (oldState.dataState as BottomSheetDataState.Success).copy(
                             selectedTypeId = typeId
-                        )
+                        ),
+                        loadingDialog = false
                     )
                 }
                 is SelectCategory -> {
                     oldState.copy(
                         dataState = (oldState.dataState as BottomSheetDataState.Success).copy(
                             selectedTypeId = categoryId
-                        )
+                        ),
+                        loadingDialog = false
                     )
                 }
             }

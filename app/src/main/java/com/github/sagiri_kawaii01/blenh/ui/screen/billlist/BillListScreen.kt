@@ -38,6 +38,7 @@ import com.github.sagiri_kawaii01.blenh.model.bean.IconBean
 import com.github.sagiri_kawaii01.blenh.ui.component.BillList
 import com.github.sagiri_kawaii01.blenh.ui.component.SearchBar
 import com.github.sagiri_kawaii01.blenh.ui.component.TimePeriodButton
+import com.github.sagiri_kawaii01.blenh.ui.component.WaitingDialog
 import com.github.sagiri_kawaii01.blenh.ui.local.LocalNavController
 import com.github.sagiri_kawaii01.blenh.ui.route.ROUTE_ADD_BILL
 import com.github.sagiri_kawaii01.blenh.ui.screen.dashboard.DashboardIntent
@@ -52,6 +53,8 @@ fun BillListScreen(
     val dispatcher = viewModel.getDispatcher(startWith = BillListIntent.Init)
     val focusManager = LocalFocusManager.current
     val navController = LocalNavController.current
+
+    WaitingDialog(visible = uiState.loadingDialog)
 
     when (uiState.billListDataState) {
         is BillListDataState.Success -> {

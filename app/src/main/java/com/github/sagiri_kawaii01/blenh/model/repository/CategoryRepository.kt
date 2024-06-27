@@ -1,4 +1,4 @@
-package com.github.sagiri_kawaii01.blenh.model.db.repository
+package com.github.sagiri_kawaii01.blenh.model.repository
 
 import com.github.sagiri_kawaii01.blenh.model.db.dao.CategoryDao
 import com.github.sagiri_kawaii01.blenh.util.flowOnIo

@@ -16,7 +16,7 @@ internal sealed interface DetailStateChange {
         override fun reduce(oldState: DetailState): DetailState {
             return when (this) {
                 Loading -> oldState.copy(
-                    detailDataState = oldState.detailDataState.apply { loading = true }
+                    loadingDialog = true
                 )
 
                 is Success -> oldState.copy(
@@ -25,9 +25,8 @@ internal sealed interface DetailStateChange {
                         type = type,
                         category = category,
                         icon = icon
-                    ).apply {
-                        loading = false
-                    }
+                    ),
+                    loadingDialog = false
                 )
             }
         }

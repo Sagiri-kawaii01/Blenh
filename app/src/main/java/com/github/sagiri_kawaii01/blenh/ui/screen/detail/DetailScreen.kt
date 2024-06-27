@@ -32,6 +32,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import com.github.sagiri_kawaii01.blenh.base.mvi.getDispatcher
 import com.github.sagiri_kawaii01.blenh.model.PayType
 import com.github.sagiri_kawaii01.blenh.model.bean.IconBean
+import com.github.sagiri_kawaii01.blenh.ui.component.WaitingDialog
 import com.github.sagiri_kawaii01.blenh.ui.theme.Typography
 import com.github.sagiri_kawaii01.blenh.util.formatDate
 
@@ -43,6 +44,8 @@ fun DetailScreen(
     val uiState by viewModel.viewState.collectAsState()
     viewModel.getDispatcher(startWith = DetailIntent.GetDetail(billId))
 
+    WaitingDialog(visible = uiState.loadingDialog)
+    
     when (uiState.detailDataState) {
         is DetailDataState.Success -> {
             val data = uiState.detailDataState as DetailDataState.Success

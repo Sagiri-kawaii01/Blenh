@@ -43,10 +43,10 @@ import androidx.savedstate.setViewTreeSavedStateRegistryOwner
 import com.github.sagiri_kawaii01.blenh.di.DatabaseModule
 import com.github.sagiri_kawaii01.blenh.model.bean.BillBean
 import com.github.sagiri_kawaii01.blenh.model.db.AppDatabase
-import com.github.sagiri_kawaii01.blenh.model.db.repository.BillRepository
-import com.github.sagiri_kawaii01.blenh.model.db.repository.CategoryRepository
-import com.github.sagiri_kawaii01.blenh.model.db.repository.IconRepository
-import com.github.sagiri_kawaii01.blenh.model.db.repository.TypeRepository
+import com.github.sagiri_kawaii01.blenh.model.repository.BillRepository
+import com.github.sagiri_kawaii01.blenh.model.repository.CategoryRepository
+import com.github.sagiri_kawaii01.blenh.model.repository.IconRepository
+import com.github.sagiri_kawaii01.blenh.model.repository.TypeRepository
 import com.github.sagiri_kawaii01.blenh.ui.screen.bottomsheet.BottomSheetContent
 import com.github.sagiri_kawaii01.blenh.ui.screen.bottomsheet.BottomSheetViewModel
 import com.github.sagiri_kawaii01.blenh.ui.theme.BlenhTheme

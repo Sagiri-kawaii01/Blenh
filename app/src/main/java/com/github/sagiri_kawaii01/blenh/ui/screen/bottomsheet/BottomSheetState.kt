@@ -15,7 +15,6 @@ data class BottomSheetState(
 }
 
 sealed class BottomSheetDataState {
-    var loading: Boolean = false
 
     data object Init: BottomSheetDataState()
     data class Success(

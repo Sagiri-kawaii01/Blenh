@@ -14,7 +14,8 @@ interface BillListStateChange {
                         billListDataState = BillListDataState.Success(
                             type = type,
                             billList = billList
-                        )
+                        ),
+                        loadingDialog = false
                     )
                 }
 

@@ -19,7 +19,6 @@ data class DetailState(
 }
 
 sealed class DetailDataState {
-    var loading: Boolean = false
 
     data object Init: DetailDataState()
     data class Success(

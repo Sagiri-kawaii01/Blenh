@@ -2,12 +2,11 @@ package com.github.sagiri_kawaii01.blenh.ui.screen.edit
 
 import androidx.lifecycle.viewModelScope
 import com.github.sagiri_kawaii01.blenh.base.mvi.AbstractMviViewModel
-import com.github.sagiri_kawaii01.blenh.base.mvi.MviSingleEvent
-import com.github.sagiri_kawaii01.blenh.model.bean.BillBean
-import com.github.sagiri_kawaii01.blenh.model.db.repository.BillRepository
-import com.github.sagiri_kawaii01.blenh.model.db.repository.CategoryRepository
-import com.github.sagiri_kawaii01.blenh.model.db.repository.TypeRepository
+import com.github.sagiri_kawaii01.blenh.model.repository.BillRepository
+import com.github.sagiri_kawaii01.blenh.model.repository.CategoryRepository
+import com.github.sagiri_kawaii01.blenh.model.repository.TypeRepository
 import com.github.sagiri_kawaii01.blenh.util.flowOnIo
+import com.github.sagiri_kawaii01.blenh.util.startWith
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -15,8 +14,6 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.combine
-import kotlinx.coroutines.flow.emptyFlow
 import kotlinx.coroutines.flow.filterIsInstance
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flow
@@ -52,30 +49,40 @@ class EditViewModel @Inject constructor(
     @OptIn(ExperimentalCoroutinesApi::class)
     private fun SharedFlow<EditIntent>.toPartialStateChangeFlow(): Flow<EditStateChange> {
         return merge(
+
+            filterIsInstance<EditIntent.GetTypes>()
+                .flatMapLatest {
+                    flow<EditStateChange> {
+                        emit(
+                            EditStateChange.TypeListSuccess(
+                                typeList = typeRepository.typeList(it.categoryId)
+                            )
+                        )
+                    }.flowOnIo()
+                },
+
             filterIsInstance<EditIntent.Save>()
                 .flatMapLatest {
-                    viewModelScope.launch(Dispatchers.IO) {
+                    flow<EditStateChange> {
                         billRepository.insert(it.billBean)
+                        emit(EditStateChange.DialogStateChange.SavingSuccess)
                         withContext(Dispatchers.Main.immediate) {
                             sendEvent(EditEvent.SaveSuccess)
                         }
-                    }
-                    flow<EditStateChange> {
-                        emit(EditStateChange.Saving)
-                    }
+                    }.flowOnIo()
+                        .startWith(EditStateChange.DialogStateChange.SavingDialog)
                 },
 
             filterIsInstance<EditIntent.Update>()
                 .flatMapLatest {
-                    viewModelScope.launch(Dispatchers.IO) {
+                    flow {
                         billRepository.update(it.billBean)
+                        emit(EditStateChange.DialogStateChange.SavingSuccess)
                         withContext(Dispatchers.Main.immediate) {
                             sendEvent(EditEvent.SaveSuccess)
                         }
-                    }
-                    flow {
-                        emit(EditStateChange.Saving)
-                    }
+                    }.flowOnIo()
+                        .startWith(EditStateChange.DialogStateChange.SavingDialog)
                 },
 
             filterIsInstance<EditIntent.Init>()
@@ -108,6 +115,7 @@ class EditViewModel @Inject constructor(
                             editBill = bill
                         ))
                     }.flowOnIo()
+                        .startWith(EditStateChange.DialogStateChange.LoadingDialog)
                 }
         )
     }

@@ -12,14 +12,13 @@ data class DashboardState(
 ): MviViewState {
     companion object {
         fun initial() = DashboardState(
-            loadingDialog = false,
+            loadingDialog = true,
             dashboardListState = DashboardListState.Init
         )
     }
 }
 
 sealed class DashboardListState {
-    var loading: Boolean = false
 
     data object Init: DashboardListState()
     data class Success(

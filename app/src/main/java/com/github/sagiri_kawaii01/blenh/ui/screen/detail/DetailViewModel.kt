@@ -3,10 +3,10 @@ package com.github.sagiri_kawaii01.blenh.ui.screen.detail
 import androidx.lifecycle.viewModelScope
 import com.github.sagiri_kawaii01.blenh.base.mvi.AbstractMviViewModel
 import com.github.sagiri_kawaii01.blenh.base.mvi.MviSingleEvent
-import com.github.sagiri_kawaii01.blenh.model.db.repository.BillRepository
-import com.github.sagiri_kawaii01.blenh.model.db.repository.CategoryRepository
-import com.github.sagiri_kawaii01.blenh.model.db.repository.IconRepository
-import com.github.sagiri_kawaii01.blenh.model.db.repository.TypeRepository
+import com.github.sagiri_kawaii01.blenh.model.repository.BillRepository
+import com.github.sagiri_kawaii01.blenh.model.repository.CategoryRepository
+import com.github.sagiri_kawaii01.blenh.model.repository.IconRepository
+import com.github.sagiri_kawaii01.blenh.model.repository.TypeRepository
 import com.github.sagiri_kawaii01.blenh.util.flowOnIo
 import com.github.sagiri_kawaii01.blenh.util.startWith
 import dagger.hilt.android.lifecycle.HiltViewModel

@@ -31,6 +31,7 @@ import com.github.sagiri_kawaii01.blenh.ui.component.DashConsume
 import com.github.sagiri_kawaii01.blenh.ui.component.IOCard
 import com.github.sagiri_kawaii01.blenh.ui.component.TendencyCard
 import com.github.sagiri_kawaii01.blenh.ui.component.TimePeriodButton
+import com.github.sagiri_kawaii01.blenh.ui.component.WaitingDialog
 import com.github.sagiri_kawaii01.blenh.ui.local.LocalNavController
 import com.github.sagiri_kawaii01.blenh.ui.route.ROUTE_ADD_BILL
 import com.github.sagiri_kawaii01.blenh.ui.theme.Gray20
@@ -44,6 +45,8 @@ fun DashboardScreen(
     val uiState by viewModel.viewState.collectAsState()
     val dispatcher = viewModel.getDispatcher(startWith = DashboardIntent.GetBillList(TimePeriodType.Week))
     val navController = LocalNavController.current
+
+    WaitingDialog(visible = uiState.loadingDialog)
 
     when (uiState.dashboardListState) {
         is DashboardListState.Success -> {

@@ -82,6 +82,7 @@ import com.github.sagiri_kawaii01.blenh.base.mvi.getDispatcher
 import com.github.sagiri_kawaii01.blenh.model.bean.BillBean
 import com.github.sagiri_kawaii01.blenh.model.bean.IconBean
 import com.github.sagiri_kawaii01.blenh.model.bean.TypeBean
+import com.github.sagiri_kawaii01.blenh.ui.component.WaitingDialog
 import com.github.sagiri_kawaii01.blenh.ui.screen.dashboard.DashboardViewModel
 import com.github.sagiri_kawaii01.blenh.ui.theme.Gray20
 import com.github.sagiri_kawaii01.blenh.ui.theme.Gray60
@@ -133,6 +134,8 @@ fun SheetContent(
         when (uiEvent) {
             is BottomSheetEvent.SaveSuccess -> onCancel()
         }
+        
+        WaitingDialog(visible = uiState.loadingDialog)
 
         SheetTypeSelector(
             uiState = uiState,
