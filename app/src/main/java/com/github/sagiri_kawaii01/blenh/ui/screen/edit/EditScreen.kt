@@ -43,9 +43,11 @@ import com.github.sagiri_kawaii01.blenh.ui.component.CalendarDialog
 import com.github.sagiri_kawaii01.blenh.ui.component.DashCard
 import com.github.sagiri_kawaii01.blenh.ui.component.DropdownOutlinedTextField
 import com.github.sagiri_kawaii01.blenh.ui.component.EditTextField
+import com.github.sagiri_kawaii01.blenh.ui.component.TimePickerDialog
 import com.github.sagiri_kawaii01.blenh.ui.local.LocalNavController
 import com.github.sagiri_kawaii01.blenh.ui.theme.Gray20
 import com.github.sagiri_kawaii01.blenh.util.formatDate
+import com.github.sagiri_kawaii01.blenh.util.now
 import com.github.sagiri_kawaii01.blenh.util.orNull
 import com.github.sagiri_kawaii01.blenh.util.today
 import io.github.boguszpawlowski.composecalendar.SelectableCalendar
@@ -54,6 +56,7 @@ import io.github.boguszpawlowski.composecalendar.rememberSelectableCalendarState
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import java.time.LocalDate
+import java.time.LocalTime
 
 @Composable
 fun EditScreen(
@@ -69,7 +72,7 @@ fun EditScreen(
     var year by remember { mutableIntStateOf(today.year) }
     var month by remember { mutableIntStateOf(today.monthValue) }
     var day by remember { mutableIntStateOf(today.dayOfMonth) }
-    var time by remember { mutableStateOf("") }
+    var time by remember { mutableStateOf("${now().hour.toString().padStart(2, '0')}:${now().minute.toString().padStart(2, '0')}") }
     var money by remember { mutableDoubleStateOf(0.0) }
     var payType by remember { mutableIntStateOf(1) }
     var payMethod by remember { mutableStateOf("") }
@@ -77,6 +80,7 @@ fun EditScreen(
     var order by remember { mutableStateOf("") }
     var remark by remember { mutableStateOf("") }
     var isDateDialogOpen by remember { mutableStateOf(false) }
+    var isTimeDialogOpen by remember { mutableStateOf(false) }
     var selectedPayType by remember { mutableStateOf(PayType.Wechat.nameZh) }
     var selectedCategoryIndex by remember { mutableIntStateOf(0) }
     var selectedTypeIndex by remember { mutableIntStateOf(0) }
@@ -148,6 +152,35 @@ fun EditScreen(
                         year = y
                         month = m
                         day = d
+                    }
+
+                    OutlinedTextField(
+                        value = time,
+                        label = { Text(text = "时间") },
+                        onValueChange = {},
+                        readOnly = true,
+                        enabled = false,
+                        colors = OutlinedTextFieldDefaults.colors(
+                            disabledBorderColor = OutlinedTextFieldDefaults.colors().unfocusedIndicatorColor,
+                            disabledContainerColor = OutlinedTextFieldDefaults.colors().unfocusedContainerColor,
+                            disabledTextColor = OutlinedTextFieldDefaults.colors().unfocusedTextColor,
+                            disabledLabelColor = OutlinedTextFieldDefaults.colors().unfocusedLabelColor,
+                            disabledPlaceholderColor = OutlinedTextFieldDefaults.colors().unfocusedPlaceholderColor
+                        ),
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .clickable {
+                                isTimeDialogOpen = true
+                            }
+                    )
+
+                    TimePickerDialog(
+                        isDialogOpen = isTimeDialogOpen,
+                        initialSelection = time.split(":").let { LocalTime.of(it[0].toInt(), it[1].toInt()) },
+                        onDismiss = {
+                            isTimeDialogOpen = false
+                        }) {
+                        time = it
                     }
 
                     // todo TimePicker & check
