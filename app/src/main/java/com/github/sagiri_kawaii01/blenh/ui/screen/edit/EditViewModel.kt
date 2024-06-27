@@ -5,6 +5,9 @@ import com.github.sagiri_kawaii01.blenh.base.mvi.AbstractMviViewModel
 import com.github.sagiri_kawaii01.blenh.base.mvi.MviSingleEvent
 import com.github.sagiri_kawaii01.blenh.model.bean.BillBean
 import com.github.sagiri_kawaii01.blenh.model.db.repository.BillRepository
+import com.github.sagiri_kawaii01.blenh.model.db.repository.CategoryRepository
+import com.github.sagiri_kawaii01.blenh.model.db.repository.TypeRepository
+import com.github.sagiri_kawaii01.blenh.util.flowOnIo
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -12,6 +15,7 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.emptyFlow
 import kotlinx.coroutines.flow.filterIsInstance
 import kotlinx.coroutines.flow.flatMapLatest
@@ -25,7 +29,9 @@ import javax.inject.Inject
 
 @HiltViewModel
 class EditViewModel @Inject constructor(
-    private val billRepository: BillRepository
+    private val billRepository: BillRepository,
+    private val categoryRepository: CategoryRepository,
+    private val typeRepository: TypeRepository
 ): AbstractMviViewModel<EditIntent, EditState, EditEvent>() {
     override val viewState: StateFlow<EditState>
 
@@ -43,10 +49,6 @@ class EditViewModel @Inject constructor(
             )
     }
 
-    suspend fun getBill(billId: Int): BillBean {
-        return billRepository.getById(billId)
-    }
-
     @OptIn(ExperimentalCoroutinesApi::class)
     private fun SharedFlow<EditIntent>.toPartialStateChangeFlow(): Flow<EditStateChange> {
         return merge(
@@ -58,7 +60,7 @@ class EditViewModel @Inject constructor(
                             sendEvent(EditEvent.SaveSuccess)
                         }
                     }
-                    flow {
+                    flow<EditStateChange> {
                         emit(EditStateChange.Saving)
                     }
                 },
@@ -74,6 +76,38 @@ class EditViewModel @Inject constructor(
                     flow {
                         emit(EditStateChange.Saving)
                     }
+                },
+
+            filterIsInstance<EditIntent.Init>()
+                .flatMapLatest { intent ->
+                    flow {
+                        val categories = categoryRepository.categoryList()
+                        val bill = if (intent.billId == null) {
+                            null
+                        } else {
+                            billRepository.getById(intent.billId)
+                        }
+                        val type = if (intent.billId == null) {
+                            typeRepository.typeList(categories[0].id)
+                        } else {
+                            typeRepository.sameKindTypes(bill!!.typeId)
+                        }
+                        emit(EditStateChange.CategoryListSuccess(
+                            categoryList = categories,
+                            typeList = type,
+                            selectedCategoryId = if (intent.billId == null) {
+                                categories[0].id
+                            } else {
+                                type.find { it.id == bill!!.typeId }!!.categoryId
+                            },
+                            selectedTypeId = if (intent.billId == null) {
+                                type[0].id
+                            } else {
+                                bill!!.typeId
+                            },
+                            editBill = bill
+                        ))
+                    }.flowOnIo()
                 }
         )
     }

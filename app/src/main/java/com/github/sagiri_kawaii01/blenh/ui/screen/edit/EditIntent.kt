@@ -5,7 +5,9 @@ import com.github.sagiri_kawaii01.blenh.model.bean.BillBean
 
 sealed interface EditIntent: MviIntent {
 
-    data object Init: EditIntent
+    data class Init(
+        val billId: Int?
+    ): EditIntent
 
     data class Save(
         val billBean: BillBean

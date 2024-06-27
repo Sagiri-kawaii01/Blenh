@@ -64,9 +64,8 @@ fun EditScreen(
     val navController = LocalNavController.current
     val uiState by viewModel.viewState.collectAsState()
     val today = today()
-    val dispatcher = viewModel.getDispatcher(startWith = EditIntent.Init)
+    val dispatcher = viewModel.getDispatcher(startWith = EditIntent.Init(billId))
     val uiEvent by viewModel.singleEvent.collectAsState(initial = null)
-    var typeId by remember { mutableIntStateOf(0) }
     var year by remember { mutableIntStateOf(today.year) }
     var month by remember { mutableIntStateOf(today.monthValue) }
     var day by remember { mutableIntStateOf(today.dayOfMonth) }
@@ -79,13 +78,21 @@ fun EditScreen(
     var remark by remember { mutableStateOf("") }
     var isDateDialogOpen by remember { mutableStateOf(false) }
     var selectedPayType by remember { mutableStateOf(PayType.Wechat.nameZh) }
+    var selectedCategoryIndex by remember { mutableIntStateOf(0) }
+    var selectedTypeIndex by remember { mutableIntStateOf(0) }
     val payTypeEnum = PayType.entries.map { it.nameZh }
 
-    if (billId != null) {
-        LaunchedEffect(Unit) {
-            viewModel.viewModelScope.launch(Dispatchers.IO) {
-                val bill = viewModel.getBill(billId)
-                typeId = bill.typeId
+    if (uiEvent is EditEvent.SaveSuccess) {
+        navController.popBackStack()
+    }
+
+    when (uiState.dataState) {
+        is EditState.EditDataState.Init -> {}
+        is EditState.EditDataState.CategoryListSuccess -> {
+            val dataState = uiState.dataState as EditState.EditDataState.CategoryListSuccess
+
+            if (billId != null) {
+                val bill = dataState.editBill!!
                 year = bill.year
                 month = bill.month
                 day = bill.day
@@ -97,141 +104,155 @@ fun EditScreen(
                 order = bill.order ?: ""
                 remark = bill.remark ?: ""
                 selectedPayType = PayType.fromId(bill.payType).nameZh
+                selectedCategoryIndex = dataState.categoryList.indexOfFirst { it.id == dataState.selectedCategoryId }
+                selectedTypeIndex = dataState.typeList.indexOfFirst { it.id == dataState.selectedTypeId }
             }
-        }
-    }
 
-    if (uiEvent is EditEvent.SaveSuccess) {
-        navController.popBackStack()
-    }
+            Column(
+                modifier = Modifier.padding(horizontal = 16.dp)
+            ) {
 
-    Column(
-        modifier = Modifier.padding(horizontal = 16.dp)
-    ) {
-
-        DashCard(
-            label = if (null == billId) {
-                "添加账单"
-            } else "编辑账单",
-            modifier = Modifier.background(Color.White)
-        ) {
+                DashCard(
+                    label = if (null == billId) {
+                        "添加账单"
+                    } else "编辑账单",
+                    modifier = Modifier.background(Color.White)
+                ) {
 
 
-            OutlinedTextField(
-                value = "$year-${formatDate(month, day)}",
-                label = { Text(text = "日期") },
-                onValueChange = {},
-                readOnly = true,
-                enabled = false,
-                colors = OutlinedTextFieldDefaults.colors(
-                    disabledBorderColor = OutlinedTextFieldDefaults.colors().unfocusedIndicatorColor,
-                    disabledContainerColor = OutlinedTextFieldDefaults.colors().unfocusedContainerColor,
-                    disabledTextColor = OutlinedTextFieldDefaults.colors().unfocusedTextColor,
-                    disabledLabelColor = OutlinedTextFieldDefaults.colors().unfocusedLabelColor,
-                    disabledPlaceholderColor = OutlinedTextFieldDefaults.colors().unfocusedPlaceholderColor
-                ),
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .clickable {
-                        isDateDialogOpen = true
+                    OutlinedTextField(
+                        value = "$year-${formatDate(month, day)}",
+                        label = { Text(text = "日期") },
+                        onValueChange = {},
+                        readOnly = true,
+                        enabled = false,
+                        colors = OutlinedTextFieldDefaults.colors(
+                            disabledBorderColor = OutlinedTextFieldDefaults.colors().unfocusedIndicatorColor,
+                            disabledContainerColor = OutlinedTextFieldDefaults.colors().unfocusedContainerColor,
+                            disabledTextColor = OutlinedTextFieldDefaults.colors().unfocusedTextColor,
+                            disabledLabelColor = OutlinedTextFieldDefaults.colors().unfocusedLabelColor,
+                            disabledPlaceholderColor = OutlinedTextFieldDefaults.colors().unfocusedPlaceholderColor
+                        ),
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .clickable {
+                                isDateDialogOpen = true
+                            }
+                    )
+
+                    CalendarDialog(
+                        isDialogOpen = isDateDialogOpen,
+                        initialSelection = LocalDate.of(year, month, day),
+                        onDismiss = { isDateDialogOpen = false }
+                    ) { y, m, d ->
+                        year = y
+                        month = m
+                        day = d
                     }
-            )
 
-            CalendarDialog(
-                isDialogOpen = isDateDialogOpen,
-                initialSelection = LocalDate.of(year, month, day),
-                onDismiss = { isDateDialogOpen = false }
-            ) { y, m, d ->
-                year = y
-                month = m
-                day = d
-            }
+                    // todo TimePicker & check
 
-            // todo TimePicker & check
+                    EditTextField(
+                        value = money.toString(),
+                        placeholder = "金额",
+                        numberInput = true,
+                        onValueChange = { money = it.toDouble() }
+                    )
 
-            EditTextField(
-                value = money.toString(),
-                placeholder = "金额",
-                numberInput = true,
-                onValueChange = { money = it.toDouble() }
-            )
+                    DropdownOutlinedTextField(
+                        options = payTypeEnum,
+                        label = "支付方式",
+                        selectedOption = selectedPayType) {
+                        selectedPayType = payTypeEnum[it]
+                    }
 
-            DropdownOutlinedTextField(
-                options = payTypeEnum,
-                label = "支付方式",
-                selectedOption = selectedPayType) {
-                selectedPayType = payTypeEnum[it]
-            }
+                    DropdownOutlinedTextField(
+                        options = dataState.categoryList.map { it.name },
+                        label = "类别",
+                        selectedOption = dataState.categoryList[selectedCategoryIndex].name) {
+                        selectedCategoryIndex = it
+                    }
 
-            EditTextField(
-                value = target,
-                placeholder = "收款方",
-                onValueChange = { target = it },
-            )
+                    DropdownOutlinedTextField(
+                        options = dataState.typeList.map { it.name },
+                        label = "类型",
+                        selectedOption = dataState.typeList[selectedTypeIndex].name) {
+                        selectedTypeIndex = it
+                    }
 
-            EditTextField(
-                value = order,
-                placeholder = "订单号",
-                onValueChange = { order = it }
-            )
+                    EditTextField(
+                        value = target,
+                        placeholder = "收款方",
+                        onValueChange = { target = it },
+                    )
 
-            EditTextField(
-                value = remark,
-                placeholder = "备注",
-                onValueChange = { remark = it }
-            )
-        }
-        
-        Spacer(modifier = Modifier.height(12.dp))
+                    EditTextField(
+                        value = order,
+                        placeholder = "订单号",
+                        onValueChange = { order = it }
+                    )
 
-        OutlinedButton(
-            modifier = Modifier
-                .height(48.dp)
-                .fillMaxWidth(),
-            onClick = {
-                if (null == billId) {
-                    dispatcher(EditIntent.Save(
-                        BillBean(
-                            year = year,
-                            month = month,
-                            day = day,
-                            typeId = typeId,
-                            time = time,
-                            money = money,
-                            payType = payType,
-                            payMethod = payMethod.orNull(),
-                            target = target.orNull(),
-                            remark = remark.orNull(),
-                            order = order.orNull()
-                        )
-                    ))
-                } else {
-                    dispatcher(EditIntent.Update(
-                        BillBean(
-                            id = billId,
-                            year = year,
-                            month = month,
-                            day = day,
-                            typeId = typeId,
-                            time = time,
-                            money = money,
-                            payType = payType,
-                            payMethod = payMethod.orNull(),
-                            target = target.orNull(),
-                            remark = remark.orNull(),
-                            order = order.orNull()
-                        )
-                    ))
+                    EditTextField(
+                        value = remark,
+                        placeholder = "备注",
+                        onValueChange = { remark = it }
+                    )
                 }
-            },
-            colors = ButtonDefaults.outlinedButtonColors()
-                .copy(
-                    contentColor = Gray20,
-                    containerColor = Color.White
-                ),
-            shape = RoundedCornerShape(8.dp)
-        ) {
-            Text(text = "保存")
+
+                Spacer(modifier = Modifier.height(12.dp))
+
+                OutlinedButton(
+                    modifier = Modifier
+                        .height(48.dp)
+                        .fillMaxWidth(),
+                    onClick = {
+                        if (null == billId) {
+                            dispatcher(EditIntent.Save(
+                                BillBean(
+                                    year = year,
+                                    month = month,
+                                    day = day,
+                                    typeId = dataState.typeList[selectedTypeIndex].id,
+                                    time = time,
+                                    money = money,
+                                    payType = payType,
+                                    payMethod = payMethod.orNull(),
+                                    target = target.orNull(),
+                                    remark = remark.orNull(),
+                                    order = order.orNull()
+                                )
+                            ))
+                        } else {
+                            dispatcher(EditIntent.Update(
+                                BillBean(
+                                    id = billId,
+                                    year = year,
+                                    month = month,
+                                    day = day,
+                                    typeId = dataState.typeList[selectedTypeIndex].id,
+                                    time = time,
+                                    money = money,
+                                    payType = payType,
+                                    payMethod = payMethod.orNull(),
+                                    target = target.orNull(),
+                                    remark = remark.orNull(),
+                                    order = order.orNull()
+                                )
+                            ))
+                        }
+                    },
+                    colors = ButtonDefaults.outlinedButtonColors()
+                        .copy(
+                            contentColor = Gray20,
+                            containerColor = Color.White
+                        ),
+                    shape = RoundedCornerShape(8.dp)
+                ) {
+                    Text(text = "保存")
+                }
+            }
         }
     }
+
+
 }
