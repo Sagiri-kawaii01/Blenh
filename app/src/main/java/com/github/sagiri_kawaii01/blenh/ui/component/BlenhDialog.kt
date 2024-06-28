@@ -12,6 +12,7 @@ import androidx.compose.ui.focus.focusModifier
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.DialogProperties
 import com.github.sagiri_kawaii01.blenh.R
+import com.github.sagiri_kawaii01.blenh.ui.theme.BlenhTheme
 
 @Composable
 fun BlenhDialog(
@@ -37,25 +38,27 @@ fun BlenhDialog(
     dismissButton: @Composable (() -> Unit)? = null,
 ) {
     if (visible) {
-        AlertDialog(
-            onDismissRequest = onDismissRequest,
-            confirmButton = confirmButton,
-            dismissButton = dismissButton,
-            properties = properties,
-            modifier = modifier,
-            icon = icon,
-            title = title,
-            text = {
-                if (selectable) {
-                    SelectionContainer(
-                        modifier = Modifier.verticalScroll(rememberScrollState())
-                    ) {
+        BlenhTheme {
+            AlertDialog(
+                onDismissRequest = onDismissRequest,
+                confirmButton = confirmButton,
+                dismissButton = dismissButton,
+                properties = properties,
+                modifier = modifier,
+                icon = icon,
+                title = title,
+                text = {
+                    if (selectable) {
+                        SelectionContainer(
+                            modifier = Modifier.verticalScroll(rememberScrollState())
+                        ) {
+                            text?.invoke()
+                        }
+                    } else {
                         text?.invoke()
                     }
-                } else {
-                    text?.invoke()
                 }
-            }
-        )
+            )
+        }
     }
 }

@@ -14,6 +14,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
@@ -21,8 +22,10 @@ import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.emptyFlow
 import kotlinx.coroutines.flow.filterIsInstance
 import kotlinx.coroutines.flow.filterNot
+import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flow
+import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.merge
 import kotlinx.coroutines.flow.onEach
@@ -40,11 +43,13 @@ class DashboardViewModel @Inject constructor(
     private val typeRepository: TypeRepository,
 ): AbstractMviViewModel<DashboardIntent, DashboardState, MviSingleEvent>() {
     override val viewState: StateFlow<DashboardState>
-    private lateinit var typeNameMap: Map<Int, String>
+    private val _typeNameMapStateFlow = MutableStateFlow<Map<Int, String>?>(null)
+    private val typeNameMapStateFlow: StateFlow<Map<Int, String>?> = _typeNameMapStateFlow
 
     init {
         viewModelScope.launch(Dispatchers.IO) {
-            typeNameMap = typeRepository.getTypeList().associate { it.id to it.name }
+            val typeNameMap = typeRepository.getTypeList().associate { it.id to it.name }
+            _typeNameMapStateFlow.value = typeNameMap
         }
 
         val initialVs = DashboardState.initial()
@@ -68,21 +73,26 @@ class DashboardViewModel @Inject constructor(
         return merge(
             filterIsInstance<DashboardIntent.GetBillList>()
                 .flatMapLatest { intent ->
-                    combine(
-                        billRepository.list(intent.type),
-                        billRepository.expend(intent.type),
-                        billRepository.charts(intent.type)
-                    ) { bills, expend, charts ->
-                        DashboardStateChange.BillList.Success(
-                            intent.type,
-                            expend,
-                            0.0 to 0.0,
-                            bills,
-                            charts,
-                            typeNameMap
+                    typeNameMapStateFlow.filterNotNull().take(1).flatMapLatest { typeNameMap ->
+                        merge(
+                            flowOf(DashboardStateChange.LoadingDialog),
+                            combine(
+                                billRepository.list(intent.type),
+                                billRepository.expend(intent.type),
+                                billRepository.charts(intent.type)
+                            ) { bills, expend, charts ->
+                                DashboardStateChange.BillList.Success(
+                                    intent.type,
+                                    expend,
+                                    0.0 to 0.0,
+                                    bills,
+                                    charts,
+                                    typeNameMap
+                                )
+                            }
                         )
                     }
-                }.startWith(DashboardStateChange.LoadingDialog),
+                },
 
             filterIsInstance<DashboardIntent.Delete>()
                 .flatMapLatest { intent ->

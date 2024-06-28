@@ -4,6 +4,7 @@ import UpdateBean
 import com.github.sagiri_kawaii01.blenh.base.BaseRepository
 import com.github.sagiri_kawaii01.blenh.model.service.UpdateService
 import kotlinx.coroutines.flow.Flow
+import okhttp3.ResponseBody
 import retrofit2.Retrofit
 import javax.inject.Inject
 
@@ -14,4 +15,6 @@ class UpdateRepository @Inject constructor(private val retrofit: Retrofit) : Bas
             emit(retrofit.create(UpdateService::class.java).checkUpdate())
         }
     }
+
+    fun downloadApk(url: String) = retrofit.create(UpdateService::class.java).downloadFile(url)
 }

@@ -4,6 +4,7 @@ import android.content.ComponentName
 import android.content.Context
 import android.content.Intent
 import android.net.Uri
+import android.os.Build
 import android.os.Bundle
 import android.provider.Settings
 import android.text.TextUtils
@@ -60,12 +61,14 @@ import com.github.sagiri_kawaii01.blenh.ui.route.ROUTE_BILL_LIST
 import com.github.sagiri_kawaii01.blenh.ui.route.ROUTE_DASHBOARD
 import com.github.sagiri_kawaii01.blenh.ui.route.ROUTE_EDIT_BILL
 import com.github.sagiri_kawaii01.blenh.ui.route.ROUTE_PAY_DETAIL
+import com.github.sagiri_kawaii01.blenh.ui.screen.about.update.UpdateDialog
 import com.github.sagiri_kawaii01.blenh.ui.screen.edit.EditScreen
 import com.github.sagiri_kawaii01.blenh.ui.screen.billlist.BillListScreen
 import com.github.sagiri_kawaii01.blenh.ui.screen.dashboard.DashboardScreen
 import com.github.sagiri_kawaii01.blenh.ui.screen.detail.DetailScreen
 import com.github.sagiri_kawaii01.blenh.ui.theme.BlenhTheme
 import com.github.sagiri_kawaii01.blenh.ui.theme.Typography
+import com.github.sagiri_kawaii01.blenh.util.CommonUtil
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.launch
 
@@ -79,12 +82,26 @@ class MainActivity : ComponentActivity() {
 
     private lateinit var navController: NavHostController
     private var showPermissionDialog by mutableStateOf(false)
+    private var showUpdateDialog by mutableStateOf(true)
     private var accessibilityEnable by mutableStateOf(false)
     private var overlayEnable by mutableStateOf(false)
+
+    private fun removeApk() {
+        val directory = getExternalFilesDir(null)
+        if (directory != null && directory.isDirectory) {
+            val apkFiles = directory.listFiles { file -> file.extension == "apk" }
+            apkFiles?.forEach { file ->
+                if (file.exists()) {
+                    file.delete()
+                }
+            }
+        }
+    }
 
     @OptIn(ExperimentalMaterial3Api::class)
     override fun onCreate(savedInstanceState: Bundle?)  {
         super.onCreate(savedInstanceState)
+        removeApk()
         if (BuildConfig.ENABLE_ACCESSIBILITY) {
             if (isStartAccessibilityServiceEnable(appContext)) {
                 accessibilityEnable = true
@@ -122,6 +139,12 @@ class MainActivity : ComponentActivity() {
                     }
                     Spacer(modifier = Modifier.height(12.dp))
                     Text(text = "此外，请确保开启自启动权限，及无限制电池优化策略")
+                }
+            }
+
+            if (!showPermissionDialog && showUpdateDialog) {
+                UpdateDialog {
+                    showUpdateDialog = false
                 }
             }
 
