@@ -91,7 +91,7 @@ class BillListViewModel @Inject constructor(
                                         date = formatDate(it.month, it.day),
                                         time = it.time,
                                         money = it.money,
-                                        label = if (it.remark != null) {
+                                        label = if (it.remark != null && it.remark!!.isNotBlank()) {
                                             it.remark!!
                                         } else {
                                             typeNameMap[it.typeId]!!
