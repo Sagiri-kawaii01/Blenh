@@ -1,5 +1,9 @@
 package com.github.sagiri_kawaii01.blenh.ui.screen.dashboard
 
+import androidx.compose.animation.core.LinearEasing
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.animateIntAsState
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -18,8 +22,12 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.IconButtonDefaults
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableFloatStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
@@ -36,6 +44,7 @@ import com.github.sagiri_kawaii01.blenh.ui.local.LocalNavController
 import com.github.sagiri_kawaii01.blenh.ui.route.ROUTE_ADD_BILL
 import com.github.sagiri_kawaii01.blenh.ui.theme.Gray20
 import com.github.sagiri_kawaii01.blenh.util.today
+import kotlinx.coroutines.delay
 import java.time.LocalDate
 
 @Composable

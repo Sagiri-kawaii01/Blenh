@@ -1,3 +1,6 @@
+import com.android.build.api.variant.FilterConfiguration
+import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
+
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.jetbrains.kotlin.android)
@@ -15,7 +18,7 @@ android {
         minSdk = 29
         targetSdk = 34
         versionCode = 1
-        versionName = "1.0"
+        versionName = "0.0.1-preview"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         vectorDrawables {
@@ -27,9 +30,45 @@ android {
         }
     }
 
+    signingConfigs {
+        create("release") {
+            storeFile = file("../key.jks")
+        }
+    }
+
+    flavorDimensions += "version"
+    productFlavors {
+        create("Github") {
+            dimension = "version"
+        }
+    }
+
+    splits {
+        abi {
+            isEnable = true
+
+            reset()
+
+            include("arm64-v8a", "armeabi-v7a", "x86", "x86_64")
+            isUniversalApk = true
+        }
+    }
+
+    applicationVariants.all {
+        outputs
+            .map { it as com.android.build.gradle.internal.api.BaseVariantOutputImpl }
+            .forEach { output ->
+                val abi = output.getFilter(FilterConfiguration.FilterType.ABI.name) ?: "universal"
+                output.outputFileName =
+                    "Blenh_${versionName}_${abi}_${buildType.name}_${flavorName}.apk"
+            }
+    }
+
     buildTypes {
         release {
+            signingConfig = signingConfigs.getByName("release")
             isMinifyEnabled = false
+            isShrinkResources = false
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"
@@ -45,14 +84,43 @@ android {
     }
     buildFeatures {
         compose = true
+        buildConfig = true
+        aidl = true
     }
     composeOptions {
         kotlinCompilerExtensionVersion = "1.5.11"
     }
     packaging {
-        resources {
-            excludes += "/META-INF/{AL2.0,LGPL2.1}"
+        resources.excludes += mutableSetOf(
+            "/META-INF/{AL2.0,LGPL2.1}",
+            "DebugProbesKt.bin",
+            "kotlin-tooling-metadata.json",
+            "okhttp3/internal/publicsuffix/NOTICE",
+            "XPP3_1.1.3.3_VERSION",
+            "XPP3_1.1.3.2_VERSION",
+        )
+        jniLibs {
+            useLegacyPackaging = true
         }
+    }
+}
+
+tasks.withType(KotlinCompile::class.java).configureEach {
+    //noinspection GrDeprecatedAPIUsage
+    kotlinOptions {
+        freeCompilerArgs += listOf(
+            "-opt-in=androidx.compose.material3.ExperimentalMaterial3Api",
+            "-opt-in=androidx.compose.material.ExperimentalMaterialApi",
+            "-opt-in=androidx.compose.animation.ExperimentalAnimationApi",
+            "-opt-in=androidx.compose.foundation.ExperimentalFoundationApi",
+            "-opt-in=coil.annotation.ExperimentalCoilApi",
+            "-opt-in=androidx.compose.material3.windowsizeclass.ExperimentalMaterial3WindowSizeClassApi",
+            "-opt-in=androidx.compose.foundation.layout.ExperimentalLayoutApi",
+            "-opt-in=androidx.compose.ui.ExperimentalComposeUiApi",
+            "-opt-in=kotlinx.coroutines.FlowPreview",
+            "-opt-in=kotlinx.serialization.ExperimentalSerializationApi",
+            "-opt-in=kotlinx.coroutines.ExperimentalCoroutinesApi",
+        )
     }
 }
 
