@@ -73,7 +73,6 @@ class DashboardViewModel @Inject constructor(
                         billRepository.expend(intent.type),
                         billRepository.charts(intent.type)
                     ) { bills, expend, charts ->
-                        delay(3000)
                         DashboardStateChange.BillList.Success(
                             intent.type,
                             expend,

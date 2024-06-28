@@ -135,7 +135,7 @@ fun SheetContent(
             is BottomSheetEvent.SaveSuccess -> onCancel()
         }
         
-        WaitingDialog(visible = uiState.loadingDialog)
+//        WaitingDialog(visible = uiState.loadingDialog)
 
         SheetTypeSelector(
             uiState = uiState,

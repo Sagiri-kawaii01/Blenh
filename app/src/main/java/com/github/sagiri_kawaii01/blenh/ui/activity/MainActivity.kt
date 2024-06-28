@@ -16,6 +16,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
@@ -35,7 +36,10 @@ import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.rememberDrawerState
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
@@ -48,6 +52,8 @@ import androidx.navigation.navArgument
 import com.github.sagiri_kawaii01.blenh.BuildConfig
 import com.github.sagiri_kawaii01.blenh.appContext
 import com.github.sagiri_kawaii01.blenh.base.AccessibilityService
+import com.github.sagiri_kawaii01.blenh.ui.component.PermissionLine
+import com.github.sagiri_kawaii01.blenh.ui.component.WaitingDialog
 import com.github.sagiri_kawaii01.blenh.ui.local.LocalNavController
 import com.github.sagiri_kawaii01.blenh.ui.route.ROUTE_ADD_BILL
 import com.github.sagiri_kawaii01.blenh.ui.route.ROUTE_BILL_LIST
@@ -72,16 +78,53 @@ val tabItem = listOf(
 class MainActivity : ComponentActivity() {
 
     private lateinit var navController: NavHostController
+    private var showPermissionDialog by mutableStateOf(false)
+    private var accessibilityEnable by mutableStateOf(false)
+    private var overlayEnable by mutableStateOf(false)
 
     @OptIn(ExperimentalMaterial3Api::class)
-    override fun onCreate(savedInstanceState: Bundle?) {
+    override fun onCreate(savedInstanceState: Bundle?)  {
         super.onCreate(savedInstanceState)
-        if (!Settings.canDrawOverlays(this) && BuildConfig.ENABLE_ACCESSIBILITY) {
-            val intent = Intent(Settings.ACTION_MANAGE_OVERLAY_PERMISSION, Uri.parse("package:$packageName"))
-            startActivity(intent)
+        if (BuildConfig.ENABLE_ACCESSIBILITY) {
+            if (isStartAccessibilityServiceEnable(appContext)) {
+                accessibilityEnable = true
+            }
+            if (Settings.canDrawOverlays(this)) {
+                overlayEnable = true
+            }
+            showPermissionDialog = !accessibilityEnable || !overlayEnable
         }
         enableEdgeToEdge()
         setContent {
+            WaitingDialog(
+                visible = showPermissionDialog,
+                title = "请开启以下权限",
+            ) {
+                Column {
+                    PermissionLine(
+                        text = "无障碍",
+                        enable = accessibilityEnable,
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        try {
+                            openAccessibilityService(appContext)
+                        } catch (e: Exception) {
+                            Log.e("Accessibility", e.toString())
+                        }
+                    }
+                    PermissionLine(
+                        text = "显示在应用上层",
+                        enable = overlayEnable,
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        val intent = Intent(Settings.ACTION_MANAGE_OVERLAY_PERMISSION, Uri.parse("package:$packageName"))
+                        startActivity(intent)
+                    }
+                    Spacer(modifier = Modifier.height(12.dp))
+                    Text(text = "此外，请确保开启自启动权限，及无限制电池优化策略")
+                }
+            }
+
             navController = rememberNavController()
             val navBackStackEntry by navController.currentBackStackEntryAsState()
             CompositionLocalProvider(
@@ -188,15 +231,7 @@ class MainActivity : ComponentActivity() {
             }
 
         }
-        if (BuildConfig.ENABLE_ACCESSIBILITY) {
-            if (!isStartAccessibilityServiceEnable(appContext)) {
-                try {
-                    openAccessibilityService(appContext)
-                } catch (e: Exception) {
-                    Log.e("APP", e.toString())
-                }
-            }
-        }
+
     }
 
     private fun isStartAccessibilityServiceEnable(context: Context): Boolean {
@@ -210,6 +245,19 @@ class MainActivity : ComponentActivity() {
             }
         }
         return false
+    }
+
+    override fun onResume() {
+        super.onResume()
+        if (BuildConfig.ENABLE_ACCESSIBILITY) {
+            if (isStartAccessibilityServiceEnable(appContext)) {
+                accessibilityEnable = true
+            }
+            if (Settings.canDrawOverlays(this)) {
+                overlayEnable = true
+            }
+            showPermissionDialog = !accessibilityEnable || !overlayEnable
+        }
     }
 
     private fun openAccessibilityService(context: Context) {
