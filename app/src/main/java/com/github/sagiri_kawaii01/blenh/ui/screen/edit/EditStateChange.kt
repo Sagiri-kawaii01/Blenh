@@ -28,7 +28,8 @@ internal sealed interface EditStateChange {
         override fun reduce(oldState: EditState): EditState {
             return oldState.copy(
                 dataState = (oldState.dataState as EditState.EditDataState.CategoryListSuccess).copy(
-                    typeList = typeList
+                    typeList = typeList,
+                    selectedTypeId = typeList[0].id
                 ),
             )
         }
