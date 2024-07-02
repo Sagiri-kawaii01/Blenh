@@ -9,6 +9,8 @@ plugins {
     alias(libs.plugins.serialization)
 }
 
+apply(from = "../secret.gradle.kts")
+
 android {
     namespace = "com.github.sagiri_kawaii01.blenh"
     compileSdk = 34
@@ -32,7 +34,12 @@ android {
 
     signingConfigs {
         create("release") {
+            @Suppress("UNCHECKED_CAST")
+            val sign = ((extra["secret"] as Map<*, *>)["sign"] as Map<String, String>)
             storeFile = file("../key.jks")
+            storePassword = sign["RELEASE_STORE_PASSWORD"]
+            keyAlias = sign["RELEASE_KEY_ALIAS"]
+            keyPassword = sign["RELEASE_KEY_PASSWORD"]
         }
     }
 
