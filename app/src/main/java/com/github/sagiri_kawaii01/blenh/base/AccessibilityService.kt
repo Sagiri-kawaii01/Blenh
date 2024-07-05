@@ -64,6 +64,7 @@ import kotlinx.coroutines.withContext
 class AccessibilityService: AccessibilityService(), SavedStateRegistryOwner, ViewModelStoreOwner {
 
     private var t = 0L
+    private var successT = 0L
     private val serviceScope = CoroutineScope(Dispatchers.Main + Job())
     private var rt = System.currentTimeMillis()
     private lateinit var windowManager: WindowManager
@@ -91,10 +92,10 @@ class AccessibilityService: AccessibilityService(), SavedStateRegistryOwner, Vie
 
     @RequiresApi(Build.VERSION_CODES.R)
     override fun onAccessibilityEvent(event: AccessibilityEvent) {
-        if (event.eventTime - t < 250) {
+        if (event.source == null) {
             return
         }
-        if (event.source == null) {
+        if (event.eventTime - t < 100) {
             return
         }
         t = event.eventTime
@@ -104,7 +105,7 @@ class AccessibilityService: AccessibilityService(), SavedStateRegistryOwner, Vie
             "com.eg.android.AlipayGphone" -> AliPayAccess.handle(rootInActiveWindow)
             else -> null
         }
-        if (null != bill) {
+        if (null != bill && System.currentTimeMillis() > successT + 3000) {
             Log.d("Bill", bill.money.toString())
             Log.d("Bill", bill.target!!)
             Log.d("Bill", bill.payMethod!!)
@@ -179,6 +180,7 @@ class AccessibilityService: AccessibilityService(), SavedStateRegistryOwner, Vie
             Log.d("AccessibilityService", "RemoveShowBottomSheet")
             if (::overlayView.isInitialized) {
                 windowManager.removeView(overlayView)
+                successT = System.currentTimeMillis()
             }
         }
     }

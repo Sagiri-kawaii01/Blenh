@@ -19,8 +19,8 @@ android {
         applicationId = "com.github.sagiri_kawaii01.blenh"
         minSdk = 29
         targetSdk = 34
-        versionCode = 2
-        versionName = "1.0.0"
+        versionCode = 3
+        versionName = "1.0.1"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         vectorDrawables {
