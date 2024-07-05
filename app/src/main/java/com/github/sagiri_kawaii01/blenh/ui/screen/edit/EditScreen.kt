@@ -191,6 +191,7 @@ fun EditScreen(
                         selectedOption = dataState.categoryList[selectedCategoryIndex].name
                     ) {
                         selectedCategoryIndex = it
+                        selectedTypeIndex = 0
                         dispatcher.invoke(EditIntent.GetTypes(dataState.categoryList[it].id))
                     }
 
