@@ -172,7 +172,9 @@ fun EditScreen(
                     }
 
                     EditTextField(
-                        value = money.toString(),
+                        value = if (money == 0.0) {
+                            "0"
+                        } else money.toString(),
                         placeholder = "金额",
                         numberInput = true,
                         onValueChange = { money = it.toDouble() }
@@ -183,6 +185,7 @@ fun EditScreen(
                         label = "支付方式",
                         selectedOption = selectedPayType) {
                         selectedPayType = payTypeEnum[it]
+                        payType = it
                     }
 
                     DropdownOutlinedTextField(
