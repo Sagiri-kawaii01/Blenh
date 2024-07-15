@@ -43,8 +43,10 @@ fun EditTextField(
         label = { Text(text = placeholder) },
         onValueChange = {
             if (numberInput) {
-                if (it.matches(Regex("^\\d*\\.?\\d*\$"))) {
+                if (it.matches(Regex("^\\d*\\.?\\d*"))) {
                     onValueChange(it)
+                } else if (it.isBlank()) {
+                    onValueChange("0")
                 }
             } else {
                 onValueChange(it)

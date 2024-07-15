@@ -58,7 +58,7 @@ fun EditScreen(
     var month by remember { mutableIntStateOf(today.monthValue) }
     var day by remember { mutableIntStateOf(today.dayOfMonth) }
     var time by remember { mutableStateOf("${now().hour.toString().padStart(2, '0')}:${now().minute.toString().padStart(2, '0')}") }
-    var money by remember { mutableDoubleStateOf(0.0) }
+    var money by remember { mutableStateOf("0") }
     var payType by remember { mutableIntStateOf(1) }
     var payMethod by remember { mutableStateOf("") }
     var target by remember { mutableStateOf("") }
@@ -90,7 +90,7 @@ fun EditScreen(
                 month = bill.month
                 day = bill.day
                 time = bill.time
-                money = bill.money
+                money = bill.money.toString()
                 payType = bill.payType
                 payMethod = bill.payMethod ?: ""
                 target = bill.target ?: ""
@@ -172,12 +172,10 @@ fun EditScreen(
                     }
 
                     EditTextField(
-                        value = if (money == 0.0) {
-                            "0"
-                        } else money.toString(),
+                        value = money,
                         placeholder = "金额",
                         numberInput = true,
-                        onValueChange = { money = it.toDouble() }
+                        onValueChange = { money = it }
                     )
 
                     DropdownOutlinedTextField(
@@ -185,7 +183,7 @@ fun EditScreen(
                         label = "支付方式",
                         selectedOption = selectedPayType) {
                         selectedPayType = payTypeEnum[it]
-                        payType = it
+                        payType = it + 1
                     }
 
                     DropdownOutlinedTextField(
@@ -240,7 +238,11 @@ fun EditScreen(
                                     day = day,
                                     typeId = dataState.typeList[selectedTypeIndex].id,
                                     time = time,
-                                    money = money,
+                                    money = if (money.endsWith(".")) {
+                                        "${money}0".toDouble()
+                                    } else {
+                                        money.toDouble()
+                                    },
                                     payType = payType,
                                     payMethod = payMethod.orNull(),
                                     target = target.orNull(),
@@ -257,7 +259,11 @@ fun EditScreen(
                                     day = day,
                                     typeId = dataState.typeList[selectedTypeIndex].id,
                                     time = time,
-                                    money = money,
+                                    money = if (money.endsWith(".")) {
+                                        "${money}0".toDouble()
+                                    } else {
+                                        money.toDouble()
+                                    },
                                     payType = payType,
                                     payMethod = payMethod.orNull(),
                                     target = target.orNull(),
