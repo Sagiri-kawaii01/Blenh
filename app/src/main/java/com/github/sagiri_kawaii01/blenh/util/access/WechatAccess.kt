@@ -26,7 +26,7 @@ object WechatAccess: PayAccess {
                         money = payInfoRoot.getChild(1).getChild(0).text.toString().removePrefix("¥").removePrefix("￥").toDouble(),
                         payType = PayType.Wechat.id,
                         target = payInfoRoot.getChild(0).getChild(0).text.toString(),
-                        payMethod = payInfoRoot.getChild(3).getChild(0).getChild(1).getChild(1).getChild(0).text.toString()
+                        payMethod = payInfoRoot.getChild(3).getChild(0).getChild(1).getChild(0).getChild(0).getChild(0).getChild(1).getChild(0).text.toString()
                     )
                 }
             } else {
